@@ -1,0 +1,9 @@
+# Aider adapter for the agent planning workflow.
+#
+# AGENTS.md is the canonical project instruction file.
+# The planning files provide active task context.
+
+read:
+  - AGENTS.md
+  - .planning/current/task-plan.md
+  - .planning/current/notes.md
