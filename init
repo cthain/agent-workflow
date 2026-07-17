@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./init <new-project-name> [destination-parent]
+
+Examples:
+  ./init launch
+  ./init my-new-tool ~/src
+  ./init ../my-new-tool
+
+What this does:
+  - creates the new project directory
+  - initializes a git repository
+  - copies agent-workflow templates into the project
+  - leaves .planning/current/task-plan.md and notes.md as placeholders
+  - writes .planning/current/bootstrap-prompt.md with the prompt to give Chappie/ChatGPT
+  - prints the same prompt to stdout
+
+Assumptions:
+  - this script lives in the root of the agent-workflow repository
+  - templates live under ./templates
+EOF
+}
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+info() {
+  echo "==> $*"
+}
+
+slugify() {
+  # Lowercase, replace non-alphanumeric runs with hyphens, trim leading/trailing hyphens.
+  # Keeps file/resource names web-friendly.
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'
+}
+
+copy_templates() {
+  local source_dir="$1"
+  local target_dir="$2"
+
+  # Prefer rsync when available because it preserves dotfiles naturally.
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a "$source_dir"/ "$target_dir"/
+  else
+    # Portable fallback that copies dotfiles too.
+    (
+      shopt -s dotglob nullglob
+      cp -R "$source_dir"/* "$target_dir"/
+    )
+  fi
+}
+
+write_bootstrap_prompt() {
+  local project_dir="$1"
+  local project_name="$2"
+  local project_slug="$3"
+  local prompt_file="$project_dir/.planning/current/bootstrap-prompt.md"
+
+  mkdir -p "$project_dir/.planning/current"
+
+  cat > "$prompt_file" <<EOF
+# Bootstrap prompt for ${project_name}
+
+Chappie, I want to start a new project using our agent planning workflow.
+
+Please help me turn the idea below into starter planning artifacts for this project.
+
+Create the initial contents for:
+
+- \`README.md\`
+- \`AGENTS.md\`
+- \`.planning/current/task-plan.md\`
+- \`.planning/current/notes.md\`
+
+Use the existing workflow conventions already present in this repository:
+
+- \`AGENTS.md\` is the canonical long-lived project instruction file
+- task-specific files live under \`.planning/current/\`
+- completed tasks are archived under \`.planning/archive/YYYY-MM-DD-short-task-name/\`
+- use hyphens, not underscores, in file and directory names
+- use uppercase Markdown filenames for long-lived project artifacts
+- use lowercase hyphenated Markdown filenames for task artifacts
+- keep the workflow useful, not ceremonial
+- keep the planning files agent-neutral so they can be used by Codex, Claude Code, Copilot, Aider, or another coding agent
+
+Project name:
+
+\`${project_name}\`
+
+Project slug:
+
+\`${project_slug}\`
+
+Here is the project idea:
+
+[PASTE IDEA HERE]
+
+Project context / constraints:
+
+[PASTE CONTEXT OR SAY "help me define this"]
+
+Preferred tech stack:
+
+[PASTE STACK OR SAY "recommend one"]
+
+First implementation target:
+
+[PASTE FIRST TARGET OR SAY "help me define it"]
+
+Also suggest any durable changes that should be made to \`AGENTS.md\`, but keep them separate from task-specific planning content.
+EOF
+}
+
+main() {
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+  fi
+
+  local raw_name="${1:-}"
+  [[ -n "$raw_name" ]] || {
+    usage
+    exit 1
+  }
+
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  local templates_dir="$script_dir/templates"
+  [[ -d "$templates_dir" ]] || die "templates directory not found at: $templates_dir"
+
+  local project_slug
+  project_slug="$(slugify "$(basename "$raw_name")")"
+  [[ -n "$project_slug" ]] || die "project name produced an empty slug"
+
+  local destination_parent="${2:-}"
+  local project_dir
+
+  if [[ -n "$destination_parent" ]]; then
+    mkdir -p "$destination_parent"
+    project_dir="$(cd "$destination_parent" && pwd)/$project_slug"
+  else
+    # If the user passed a path, respect its parent but normalize the final directory name.
+    if [[ "$raw_name" == */* ]]; then
+      local parent
+      parent="$(dirname "$raw_name")"
+      mkdir -p "$parent"
+      project_dir="$(cd "$parent" && pwd)/$project_slug"
+    else
+      project_dir="$(pwd)/$project_slug"
+    fi
+  fi
+
+  [[ ! -e "$project_dir" ]] || die "target already exists: $project_dir"
+
+  info "Creating project: $project_dir"
+  mkdir -p "$project_dir"
+
+  info "Copying workflow templates"
+  copy_templates "$templates_dir" "$project_dir"
+
+  # Ensure expected planning directories exist even if templates are incomplete.
+  mkdir -p "$project_dir/.planning/current"
+  mkdir -p "$project_dir/.planning/archive"
+
+  info "Writing bootstrap prompt"
+  write_bootstrap_prompt "$project_dir" "$project_slug" "$project_slug"
+
+  info "Initializing git repository"
+  (
+    cd "$project_dir"
+    git init -q
+    git add .
+  )
+
+  cat <<EOF
+
+Project bootstrapped successfully.
+
+Location:
+  $project_dir
+
+Next step:
+  1. Open the project.
+  2. Read .planning/current/bootstrap-prompt.md.
+  3. Paste that prompt into ChatGPT/Chappie with your project idea.
+  4. Replace the placeholder planning files with the generated versions.
+  5. Ask your coding agent to implement .planning/current/task-plan.md.
+
+Bootstrap prompt:
+------------------------------------------------------------
+EOF
+
+  cat "$project_dir/.planning/current/bootstrap-prompt.md"
+
+  cat <<EOF
+------------------------------------------------------------
+
+Suggested first agent prompt after Chappie generates the plan:
+
+Read AGENTS.md, .planning/current/task-plan.md, and .planning/current/notes.md.
+
+Inspect the repository before making code changes.
+
+Update the plan if inspection shows it is wrong or incomplete.
+
+Then implement the task in small, understandable steps.
+
+Before finishing, run the documented checks, update the planning files, and summarize what changed, what passed, and what remains.
+
+EOF
+}
+
+main "$@"
