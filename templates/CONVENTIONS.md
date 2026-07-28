@@ -17,4 +17,6 @@ Active task context lives in:
 .planning/current/notes.md
 ```
 
+Role-specific working guidance lives in `personas/`. Use the persona named by the current task prompt. Personas supplement the canonical instructions in `AGENTS.md`.
+
 Use hyphens, not underscores, in file and directory names.

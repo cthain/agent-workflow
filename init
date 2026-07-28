@@ -15,6 +15,7 @@ What this does:
   - creates the new project directory
   - initializes a git repository
   - copies agent-workflow templates into the project
+  - copies role personas into the project
   - leaves .planning/current/task-plan.md and notes.md as placeholders
   - writes .planning/current/bootstrap-prompt.md with the prompt to give Chappie/ChatGPT
   - prints the same prompt to stdout
@@ -73,6 +74,8 @@ Chappie, I want to start a new project using our agent planning workflow.
 
 Please help me turn the idea below into starter planning artifacts for this project.
 
+First read and adopt the planner persona in \`personas/planner.md\`. Follow it together with \`AGENTS.md\`.
+
 Create the initial contents for:
 
 - \`README.md\`
@@ -90,6 +93,7 @@ Use the existing workflow conventions already present in this repository:
 - use lowercase hyphenated Markdown filenames for task artifacts
 - keep the workflow useful, not ceremonial
 - keep the planning files agent-neutral so they can be used by Codex, Claude Code, Copilot, Aider, or another coding agent
+- use the role personas under \`personas/\` for planning, implementation, review, and audience-specific documentation work
 
 Project name:
 
@@ -136,6 +140,8 @@ main() {
 
   local templates_dir="$script_dir/templates"
   [[ -d "$templates_dir" ]] || die "templates directory not found at: $templates_dir"
+  local personas_dir="$script_dir/personas"
+  [[ -d "$personas_dir" ]] || die "personas directory not found at: $personas_dir"
 
   local project_slug
   project_slug="$(slugify "$(basename "$raw_name")")"
@@ -166,6 +172,10 @@ main() {
 
   info "Copying workflow templates"
   copy_templates "$templates_dir" "$project_dir"
+
+  info "Copying role personas"
+  mkdir -p "$project_dir/personas"
+  copy_templates "$personas_dir" "$project_dir/personas"
 
   # Ensure expected planning directories exist even if templates are incomplete.
   mkdir -p "$project_dir/.planning/current"
@@ -207,6 +217,8 @@ EOF
 Suggested first agent prompt after Chappie generates the plan:
 
 Read AGENTS.md, .planning/current/task-plan.md, and .planning/current/notes.md.
+
+Read and adopt personas/code-developer.md for this task.
 
 Inspect the repository before making code changes.
 

@@ -74,6 +74,19 @@ Use file-based planning for substantial multi-step work.
 
 Do not create planning artifacts for trivial edits, typo fixes, or one-shot changes.
 
+## Task personas
+
+Role-specific guidance lives under `personas/`:
+
+- `planner.md` — create or materially revise task plans
+- `code-developer.md` — implement an agreed task plan
+- `code-reviewer.md` — independently review an implementation
+- `doc-technical-writer-user.md` — write end-user documentation
+- `doc-technical-writer-api.md` — write API documentation
+- `doc-technical-writer-code.md` — write code-oriented developer documentation
+
+Read and adopt the persona named by the current prompt before beginning that role's work. Use only the persona or personas relevant to the task. A persona supplements this file and the active planning artifacts; it does not override them or any higher-priority instruction.
+
 Active planning files live under:
 
 ```text
@@ -169,15 +182,16 @@ The summary should be clean enough to read months later without needing to recon
 For substantial work:
 
 1. Read this file.
-2. Read `.planning/current/task-plan.md`.
-3. Read `.planning/current/notes.md` if it exists.
-4. Inspect the relevant code before making changes.
-5. Update the plan if inspection reveals the existing plan is wrong or incomplete.
-6. Make changes in small, understandable steps.
-7. Record important findings, failed attempts, or handoff notes in `notes.md`.
-8. Before finishing, update task status and notes.
-9. Run the relevant project checks.
-10. Archive the planning artifacts when the task is complete.
+2. Read and adopt the persona selected by the current task prompt.
+3. Read `.planning/current/task-plan.md`.
+4. Read `.planning/current/notes.md` if it exists.
+5. Inspect the relevant code before making changes.
+6. Update the plan if inspection reveals the existing plan is wrong or incomplete.
+7. Make changes in small, understandable steps.
+8. Record important findings, failed attempts, or handoff notes in `notes.md`.
+9. Before finishing, update task status and notes.
+10. Run the relevant project checks.
+11. Archive the planning artifacts when the task is complete.
 
 Planning files are working memory, not bureaucracy. Prefer compact, useful updates over exhaustive journaling.
 

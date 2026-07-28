@@ -5,6 +5,8 @@ Use this when a task is complete and the current planning artifacts should be mo
 ```text
 The active task is complete.
 
+Read `AGENTS.md` and the active planning artifacts before archiving. This is an archival operation, so do not adopt an implementation or review persona.
+
 Archive the task artifacts from:
 
 - `.planning/current/task-plan.md`

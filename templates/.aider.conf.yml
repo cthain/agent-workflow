@@ -2,6 +2,8 @@
 #
 # AGENTS.md is the canonical project instruction file.
 # The planning files provide active task context.
+# Add the persona selected for the current role with Aider's --read option;
+# do not load multiple personas by default.
 
 read:
   - AGENTS.md

@@ -22,6 +22,8 @@ Everybody's eatin' big time
 
 The roles may be handled by different tools or by the same tool in different modes.
 
+Each role has reusable guidance under `personas/`. A task prompt selects the appropriate persona; the persona supplements the canonical project instructions and active task context.
+
 ## Durable files
 
 The workflow depends on durable files in the repository.
@@ -80,6 +82,19 @@ CONVENTIONS.md
 .github/copilot-instructions.md
 .codex/skills/project-planning/SKILL.md
 ```
+
+## Personas
+
+Use one role persona at a time for the primary work being performed:
+
+- `personas/planner.md` for creating or materially revising a plan
+- `personas/code-developer.md` for implementation
+- `personas/code-reviewer.md` for independent review
+- `personas/doc-technical-writer-user.md` for end-user documentation
+- `personas/doc-technical-writer-api.md` for API documentation
+- `personas/doc-technical-writer-code.md` for code-oriented developer documentation
+
+Read the selected persona before starting the role. If a task spans implementation and documentation, use the developer persona for implementation and then explicitly switch to the appropriate writer persona for the documentation pass.
 
 ## When to use planning files
 

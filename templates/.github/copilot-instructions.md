@@ -2,6 +2,8 @@
 
 Read and follow the repository's canonical agent instructions in `AGENTS.md`.
 
+Task prompts select a role from `personas/`. Read and adopt the selected persona for that task; `AGENTS.md` remains authoritative if instructions conflict.
+
 For substantial implementation tasks, use the active planning files:
 
 ```text

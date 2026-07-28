@@ -28,8 +28,13 @@ Use these files in the project root:
 - `AGENTS.md` — standing repository instructions
 - `.planning/current/task-plan.md` — the active plan
 - `.planning/current/notes.md` — durable decisions, findings, failed attempts, handoffs, and follow-up ideas
+- `personas/` — role-specific guidance selected by the current task prompt
 
 Do not create extra planning files unless the task genuinely needs them.
+
+## Personas
+
+Adopt the persona selected by the task prompt. Use `personas/planner.md` when creating or materially revising a plan, `personas/code-developer.md` when implementing, and `personas/code-reviewer.md` for an independent review. Documentation work may use the audience-specific technical-writer personas. Personas supplement `AGENTS.md` and never override higher-priority instructions.
 
 ## Workflow
 

@@ -3,6 +3,8 @@
 Use this after an agent has implemented a task.
 
 ```text
+Adopt the code reviewer persona in `personas/code-reviewer.md` for this task. Read it before beginning.
+
 Review the completed changes against:
 
 - `AGENTS.md`

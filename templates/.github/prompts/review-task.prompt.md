@@ -1,5 +1,7 @@
 # Review active task
 
+Adopt the code reviewer persona in `personas/code-reviewer.md` for this task.
+
 Review the completed changes against:
 
 - `AGENTS.md`

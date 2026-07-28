@@ -4,6 +4,8 @@ Read and follow `AGENTS.md`.
 
 `AGENTS.md` is the canonical project instruction file.
 
+Task prompts may select a role from `personas/`. Read and adopt the selected persona for the current task. The persona supplements `AGENTS.md`; it does not override it.
+
 For substantial implementation tasks, use:
 
 ```text

@@ -52,7 +52,11 @@ Do not maintain separate copies of the same rules in every adapter.
 
 Multiple agents should be coordinated by role.
 
+The prompt for each role should explicitly select its persona from `personas/`. Personas define how to perform a role; `AGENTS.md` and the planning artifacts continue to define project rules and task scope.
+
 ### Planner
+
+Persona: `personas/planner.md`
 
 Owns:
 
@@ -68,6 +72,8 @@ Responsibilities:
 - record initial assumptions and risks
 
 ### Implementer
+
+Persona: `personas/code-developer.md`
 
 Owns:
 
@@ -89,6 +95,8 @@ Responsibilities:
 - record meaningful failures
 
 ### Reviewer
+
+Persona: `personas/code-reviewer.md`
 
 Owns:
 
@@ -120,6 +128,18 @@ Responsibilities:
 - record key decisions
 - record checks run
 - record follow-up work
+
+Archiving has no dedicated persona. The archivist follows `AGENTS.md` and the archive prompt without retaining an implementation or review persona.
+
+### Technical writer
+
+Select the persona by audience:
+
+- `personas/doc-technical-writer-user.md` for end users
+- `personas/doc-technical-writer-api.md` for API consumers
+- `personas/doc-technical-writer-code.md` for developers working with the codebase
+
+If documentation is a distinct phase, switch explicitly from the prior role's persona to the selected writer persona.
 
 ## Handoff protocol
 

@@ -22,6 +22,7 @@ AGENTS.md                         # canonical project instructions
 .planning/current/task-plan.md    # active task
 .planning/current/notes.md        # durable task context
 .planning/archive/...             # completed task history
+personas/...                      # reusable role-specific working guidance
 ```
 
 Then add thin adapters for specific tools:
@@ -69,7 +70,15 @@ Use it when the task has enough complexity that losing context would hurt.
 │   ├── continue-task.md
 │   ├── review-task.md
 │   ├── archive-task.md
-│   └── multi-agent-handoff.md
+│   ├── multi-agent-handoff.md
+│   └── document-task.md
+├── personas/
+│   ├── planner.md
+│   ├── code-developer.md
+│   ├── code-reviewer.md
+│   ├── doc-technical-writer-user.md
+│   ├── doc-technical-writer-api.md
+│   └── doc-technical-writer-code.md
 └── templates/
     ├── AGENTS.md
     ├── CLAUDE.md
@@ -86,13 +95,15 @@ Use it when the task has enough complexity that losing context would hurt.
     └── .github/
         ├── copilot-instructions.md
         └── prompts/
+            ├── create-task-plan.prompt.md
             ├── implement-task.prompt.md
-            └── review-task.prompt.md
+            ├── review-task.prompt.md
+            └── document-task.prompt.md
 ```
 
 ## How to use this in a project
 
-Copy the contents of `templates/` into the root of the target repository.
+Run `./init <new-project-name> [destination-parent]` to create a repository with the templates and personas installed. To install the workflow manually, copy the contents of `templates/` and the `personas/` directory into the target repository root.
 
 At minimum, copy:
 
@@ -100,6 +111,7 @@ At minimum, copy:
 AGENTS.md
 .planning/current/task-plan.md
 .planning/current/notes.md
+personas/
 ```
 
 Then customize `AGENTS.md` for the project.
@@ -112,6 +124,7 @@ Tool-specific adapters are optional.
 AGENTS.md
 .planning/current/task-plan.md
 .planning/current/notes.md
+personas/
 ```
 
 ## Recommended multi-agent setup
@@ -126,6 +139,7 @@ CONVENTIONS.md
 
 .planning/current/task-plan.md
 .planning/current/notes.md
+personas/
 ```
 
 ## Naming conventions
@@ -158,6 +172,8 @@ review.md
 ```text
 Use the agent planning workflow.
 
+Read and adopt personas/planner.md for this task.
+
 Turn this idea into Codex/agent-ready planning artifacts for:
 
 - .planning/current/task-plan.md
@@ -174,6 +190,8 @@ Here is the idea:
 
 ```text
 Read AGENTS.md, .planning/current/task-plan.md, and .planning/current/notes.md.
+
+Read and adopt personas/code-developer.md for this task.
 
 Inspect the repository before making code changes.
 

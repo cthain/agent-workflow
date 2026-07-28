@@ -6,8 +6,11 @@ Use this when returning to an active task.
 Read:
 
 - `AGENTS.md`
+- `personas/code-developer.md`
 - `.planning/current/task-plan.md`
 - `.planning/current/notes.md`
+
+Adopt the code developer persona in `personas/code-developer.md` for this task.
 
 Then inspect the repository before making code changes.
 
