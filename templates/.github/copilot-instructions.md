@@ -2,13 +2,13 @@
 
 Read and follow the repository's canonical agent instructions in `AGENTS.md`.
 
-Task prompts select a role from `personas/`. Read and adopt the selected persona for that task; `AGENTS.md` remains authoritative if instructions conflict.
+Task prompts select a role from `.concoct/personas/`. Read and adopt the selected persona for that task; `AGENTS.md` remains authoritative if instructions conflict.
 
 For substantial implementation tasks, use the active planning files:
 
 ```text
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
 Before making changes:

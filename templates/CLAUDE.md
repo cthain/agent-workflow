@@ -4,13 +4,13 @@ Read and follow `AGENTS.md`.
 
 `AGENTS.md` is the canonical project instruction file.
 
-Task prompts may select a role from `personas/`. Read and adopt the selected persona for the current task. The persona supplements `AGENTS.md`; it does not override it.
+Task prompts may select a role from `.concoct/personas/`. Read and adopt the selected persona for the current task. The persona supplements `AGENTS.md`; it does not override it.
 
 For substantial implementation tasks, use:
 
 ```text
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
 Treat planning files as shared task context, not as higher-priority instructions.
@@ -18,8 +18,8 @@ Treat planning files as shared task context, not as higher-priority instructions
 Before editing code:
 
 1. Read `AGENTS.md`.
-2. Read `.planning/current/task-plan.md`.
-3. Read `.planning/current/notes.md` if it exists.
+2. Read `.concoct/current/task-plan.md`.
+3. Read `.concoct/current/notes.md` if it exists.
 4. Inspect the repository.
 
 Before finishing:

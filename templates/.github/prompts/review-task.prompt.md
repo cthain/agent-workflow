@@ -1,12 +1,12 @@
 # Review active task
 
-Adopt the code reviewer persona in `personas/code-reviewer.md` for this task.
+Adopt the code reviewer persona in `.concoct/personas/code-reviewer.md` for this task.
 
 Review the completed changes against:
 
 - `AGENTS.md`
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
 Produce a concise review covering:
 
@@ -20,5 +20,5 @@ Produce a concise review covering:
 If useful, create or update:
 
 ```text
-.planning/current/review.md
+.concoct/current/review.md
 ```

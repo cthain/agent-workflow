@@ -3,16 +3,16 @@
 Use this prompt when you have an idea and want an assistant to turn it into agent-ready planning artifacts.
 
 ```text
-Adopt the planner persona in `personas/planner.md` for this task. Read it before beginning and follow it together with `AGENTS.md`.
+Adopt the planner persona in `.concoct/personas/planner.md` for this task. Read it before beginning and follow it together with `AGENTS.md`.
 
 I want to turn the following idea into implementation-ready planning artifacts.
 
 Please produce the contents for:
 
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
-Use the lightweight agent planning workflow.
+Use the lightweight Concoct workflow.
 
 Follow these conventions:
 

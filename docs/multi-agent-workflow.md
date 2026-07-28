@@ -1,6 +1,6 @@
-# Multi-Agent Workflow
+# Concoct Multi-Agent Workflow
 
-This document explains how to use the planning workflow with multiple agents or agent tools.
+This document explains how to use Concoct with multiple agents or agent tools.
 
 ## Keep task context neutral
 
@@ -9,8 +9,8 @@ The active task files should not be specific to one tool.
 Use:
 
 ```text
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
 Avoid phrases like:
@@ -52,17 +52,17 @@ Do not maintain separate copies of the same rules in every adapter.
 
 Multiple agents should be coordinated by role.
 
-The prompt for each role should explicitly select its persona from `personas/`. Personas define how to perform a role; `AGENTS.md` and the planning artifacts continue to define project rules and task scope.
+The prompt for each role should explicitly select its persona from `.concoct/personas/`. Personas define how to perform a role; `AGENTS.md` and the planning artifacts continue to define project rules and task scope.
 
 ### Planner
 
-Persona: `personas/planner.md`
+Persona: `.concoct/personas/planner.md`
 
 Owns:
 
 - task definition
-- `.planning/current/task-plan.md`
-- initial `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- initial `.concoct/current/notes.md`
 
 Responsibilities:
 
@@ -73,7 +73,7 @@ Responsibilities:
 
 ### Implementer
 
-Persona: `personas/code-developer.md`
+Persona: `.concoct/personas/code-developer.md`
 
 Owns:
 
@@ -83,8 +83,8 @@ Owns:
 
 Updates:
 
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
 Responsibilities:
 
@@ -96,7 +96,7 @@ Responsibilities:
 
 ### Reviewer
 
-Persona: `personas/code-reviewer.md`
+Persona: `.concoct/personas/code-reviewer.md`
 
 Owns:
 
@@ -108,7 +108,7 @@ Owns:
 May create:
 
 ```text
-.planning/current/review.md
+.concoct/current/review.md
 ```
 
 Only create `review.md` when there is a meaningful separate review phase.
@@ -118,7 +118,7 @@ Only create `review.md` when there is a meaningful separate review phase.
 Owns:
 
 ```text
-.planning/archive/YYYY-MM-DD-short-task-name/summary.md
+.concoct/archive/YYYY-MM-DD-short-task-name/summary.md
 ```
 
 Responsibilities:
@@ -135,9 +135,9 @@ Archiving has no dedicated persona. The archivist follows `AGENTS.md` and the ar
 
 Select the persona by audience:
 
-- `personas/doc-technical-writer-user.md` for end users
-- `personas/doc-technical-writer-api.md` for API consumers
-- `personas/doc-technical-writer-code.md` for developers working with the codebase
+- `.concoct/personas/doc-technical-writer-user.md` for end users
+- `.concoct/personas/doc-technical-writer-api.md` for API consumers
+- `.concoct/personas/doc-technical-writer-code.md` for developers working with the codebase
 
 If documentation is a distinct phase, switch explicitly from the prior role's persona to the selected writer persona.
 
@@ -178,14 +178,14 @@ Before starting work, each agent should read:
 
 ```text
 AGENTS.md
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
 If present, also read:
 
 ```text
-.planning/current/review.md
+.concoct/current/review.md
 ```
 
 ## Practical recommendation

@@ -3,13 +3,13 @@
 Use this after an agent has implemented a task.
 
 ```text
-Adopt the code reviewer persona in `personas/code-reviewer.md` for this task. Read it before beginning.
+Adopt the code reviewer persona in `.concoct/personas/code-reviewer.md` for this task. Read it before beginning.
 
 Review the completed changes against:
 
 - `AGENTS.md`
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
 Give me a concise review with:
 

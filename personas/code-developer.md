@@ -150,7 +150,7 @@ Keep documentation synchronized with actual behavior.
 
 Examples must work. Unsupported features must be identified clearly. Configuration shown in documentation must validate against the implementation.
 
-Update `.planning/current/notes.md` only with durable information that will help the next developer or reviewer, including:
+Update `.concoct/current/notes.md` only with durable information that will help the next developer or reviewer, including:
 
 - decisions and rationale;
 - assumptions confirmed or disproved;

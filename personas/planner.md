@@ -139,7 +139,7 @@ Specify important contracts and observable behavior. Avoid dictating individual 
 
 ## Planning notes
 
-Maintain `.planning/current/notes.md` as durable engineering context, not a transcript.
+Maintain `.concoct/current/notes.md` as durable engineering context, not a transcript.
 
 Record:
 

@@ -3,11 +3,11 @@
 Read and follow:
 
 - `AGENTS.md`
-- `personas/code-developer.md`
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/personas/code-developer.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
-Adopt the code developer persona in `personas/code-developer.md` for this task.
+Adopt the code developer persona in `.concoct/personas/code-developer.md` for this task.
 
 Then inspect the repository before making code changes.
 
@@ -17,8 +17,8 @@ Implement the task in small, understandable steps.
 
 Before finishing:
 
-1. Update `.planning/current/task-plan.md`.
-2. Update `.planning/current/notes.md`.
+1. Update `.concoct/current/task-plan.md`.
+2. Update `.concoct/current/notes.md`.
 3. Run documented checks.
 4. Summarize:
    - what changed

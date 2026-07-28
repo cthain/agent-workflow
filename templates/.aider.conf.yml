@@ -1,4 +1,4 @@
-# Aider adapter for the agent planning workflow.
+# Aider adapter for Concoct.
 #
 # AGENTS.md is the canonical project instruction file.
 # The planning files provide active task context.
@@ -7,5 +7,5 @@
 
 read:
   - AGENTS.md
-  - .planning/current/task-plan.md
-  - .planning/current/notes.md
+  - .concoct/current/task-plan.md
+  - .concoct/current/notes.md

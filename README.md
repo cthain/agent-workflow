@@ -1,203 +1,105 @@
-# Agent Planning Workflow
+# Concoct
 
-A lightweight, agent-neutral workflow for turning ideas into implementation-ready plans.
+Turn raw ideas into work agents can execute.
 
-The core loop is:
+Concoct is a lightweight, agent-neutral workflow for turning ideas into durable task plans that coding agents can inspect, implement, review, and archive.
 
-1. Good idea.
-1. Turn it into a plan.
-1. Agent(s) ship(s) it.
-1. Eatin’ big time.
+```text
+idea → concoct helps agents cook → eatin’ big time
+```
 
-This project is designed for working with coding agents such as Codex, Claude Code, GitHub Copilot coding agent, Aider, or future agent tools.
+It works with Codex, Claude Code, GitHub Copilot, Aider, and other capable coding agents. Durable project and task context lives in ordinary repository files rather than in one tool's conversation history.
 
-The durable project/task context lives in ordinary repository files. Agent-specific files are thin adapters that point back to the canonical instructions.
+## How the installed workflow works
 
-## Core idea
-
-Keep the workflow agent-neutral:
+Generated projects use this stable, agent-neutral contract:
 
 ```text
 AGENTS.md                         # canonical project instructions
-.planning/current/task-plan.md    # active task
-.planning/current/notes.md        # durable task context
-.planning/archive/...             # completed task history
-personas/...                      # reusable role-specific working guidance
+.concoct/personas/                # role-specific working guidance
+.concoct/current/task-plan.md      # active task
+.concoct/current/notes.md          # durable task context
+.concoct/archive/                  # completed task history
 ```
 
-Then add thin adapters for specific tools:
+Optional adapters point back to those canonical files:
 
 ```text
 CLAUDE.md
 CONVENTIONS.md
 .aider.conf.yml
 .github/copilot-instructions.md
-.codex/skills/project-planning/SKILL.md
+.github/prompts/
+.codex/skills/concoct/SKILL.md
 ```
 
-## What this is
+## Repository layout
 
-This is a small starter kit for Manus-style file-based planning without the heavy ceremony.
-
-It helps agents avoid common failure modes:
-
-- forgetting context
-- drifting from the task
-- repeating failed actions
-- losing important decisions after a context reset
-- mixing unrelated cleanup into the active task
-
-## What this is not
-
-This is not a framework.
-
-This is not a project management system.
-
-This is not meant to create planning bureaucracy for every tiny change.
-
-Use it when the task has enough complexity that losing context would hurt.
-
-## Repository structure
+Concoct's source files use ordinary root-level directories. The `.concoct/` directory is reserved for generated client installs.
 
 ```text
 .
+├── AGENTS.md
 ├── README.md
-├── docs/
-│   ├── workflow.md
-│   └── multi-agent-workflow.md
-├── prompts/
-│   ├── create-task-plan.md
-│   ├── continue-task.md
-│   ├── review-task.md
-│   ├── archive-task.md
-│   ├── multi-agent-handoff.md
-│   └── document-task.md
-├── personas/
-│   ├── planner.md
-│   ├── code-developer.md
-│   ├── code-reviewer.md
-│   ├── doc-technical-writer-user.md
-│   ├── doc-technical-writer-api.md
-│   └── doc-technical-writer-code.md
-└── templates/
-    ├── AGENTS.md
-    ├── CLAUDE.md
-    ├── CONVENTIONS.md
-    ├── .aider.conf.yml
-    ├── .planning/
-    │   └── current/
-    │       ├── task-plan.md
-    │       └── notes.md
-    ├── .codex/
-    │   └── skills/
-    │       └── project-planning/
-    │           └── SKILL.md
-    └── .github/
-        ├── copilot-instructions.md
-        └── prompts/
-            ├── create-task-plan.prompt.md
-            ├── implement-task.prompt.md
-            ├── review-task.prompt.md
-            └── document-task.prompt.md
+├── LICENSE
+├── concoct
+├── current/       # Concoct's own active planning files
+├── archive/       # Concoct's completed task history
+├── docs/          # workflow documentation
+├── prompts/       # reusable role prompts
+├── personas/      # planner, developer, reviewer, and writer personas
+├── skills/        # skills for working on Concoct itself
+└── templates/     # files installed into generated projects
 ```
 
-## How to use this in a project
+In a generated project, Concoct-owned task state and personas live under `.concoct/`. Conventional instruction and tool integration files remain at the project root. Removing `.concoct/` therefore removes Concoct's working material without removing the project's conventional files or tool configuration.
 
-Run `./init <new-project-name> [destination-parent]` to create a repository with the templates and personas installed. To install the workflow manually, copy the contents of `templates/` and the `personas/` directory into the target repository root.
+## Bootstrap a project
 
-At minimum, copy:
+```bash
+git clone <repository-url>
+cd concoct
+./concoct ../my-new-project
+```
+
+`concoct` creates the project, copies templates and personas (including dotfiles), initializes Git, stages the generated files, and writes:
 
 ```text
-AGENTS.md
-.planning/current/task-plan.md
-.planning/current/notes.md
-personas/
+.concoct/current/bootstrap-prompt.md
 ```
 
-Then customize `AGENTS.md` for the project.
+It does not create a commit. Review the staged files before committing them.
 
-Tool-specific adapters are optional.
+Next:
 
-## Recommended minimum setup
+1. Open the generated project.
+2. Give `.concoct/current/bootstrap-prompt.md` and your idea to Chappie or ChatGPT.
+3. Review the generated `README.md`, `AGENTS.md`, task plan, and notes.
+4. Ask a coding agent to adopt `.concoct/personas/code-developer.md` and implement the plan.
+5. Use the reviewer prompt before archiving completed work.
 
-```text
-AGENTS.md
-.planning/current/task-plan.md
-.planning/current/notes.md
-personas/
-```
+## Workflow
 
-## Recommended multi-agent setup
+Use planning files when losing context would be costly: architecture changes, multi-file refactors, features, public API changes, repository setup, or multi-session work. Skip them for tiny edits and one-shot answers.
 
-```text
-AGENTS.md
-CLAUDE.md
-CONVENTIONS.md
-.aider.conf.yml
-.github/copilot-instructions.md
-.codex/skills/project-planning/SKILL.md
+The reusable prompts are in `prompts/`:
 
-.planning/current/task-plan.md
-.planning/current/notes.md
-personas/
-```
+- `create-task-plan.md`
+- `continue-task.md`
+- `review-task.md`
+- `document-task.md`
+- `archive-task.md`
+- `multi-agent-handoff.md`
+
+See [workflow.md](docs/workflow.md) for the full loop and [multi-agent-workflow.md](docs/multi-agent-workflow.md) for role coordination.
 
 ## Naming conventions
 
-Use hyphens, not underscores, in file and directory names.
+- Use hyphens, not underscores, in file and directory names.
+- Keep conventional, long-lived project artifacts such as `AGENTS.md`, `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` at the root.
+- Use uppercase Markdown filenames for long-lived project-level artifacts.
+- Use lowercase hyphenated Markdown filenames for task and workflow artifacts.
 
-Use uppercase Markdown filenames for long-lived project-level artifacts:
+## Manual repository rename
 
-```text
-AGENTS.md
-README.md
-CHANGELOG.md
-CONTRIBUTING.md
-CLAUDE.md
-CONVENTIONS.md
-```
-
-Use lowercase hyphenated Markdown filenames for task-specific artifacts:
-
-```text
-task-plan.md
-notes.md
-summary.md
-design-sketch.md
-review.md
-```
-
-## Suggested first prompt
-
-```text
-Use the agent planning workflow.
-
-Read and adopt personas/planner.md for this task.
-
-Turn this idea into Codex/agent-ready planning artifacts for:
-
-- .planning/current/task-plan.md
-- .planning/current/notes.md
-
-Keep the plan useful, not ceremonial.
-
-Here is the idea:
-
-[PASTE IDEA HERE]
-```
-
-## Suggested implementer prompt
-
-```text
-Read AGENTS.md, .planning/current/task-plan.md, and .planning/current/notes.md.
-
-Read and adopt personas/code-developer.md for this task.
-
-Inspect the repository before making code changes.
-
-Update the plan if inspection shows it is wrong or incomplete.
-
-Then implement the task in small, understandable steps.
-
-Before finishing, run the documented checks, update the planning files, and summarize what changed, what passed, and what remains.
-```
+The local content is branded for the intended repository name `concoct`. A repository owner must still rename the GitHub repository, update its description and topics, confirm clone URL redirects, and update local remotes where needed.

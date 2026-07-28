@@ -1,5 +1,7 @@
 # AGENTS.md
 
+This project uses Concoct for lightweight, file-based planning.
+
 ## Project intent
 
 Describe what this project is, who it is for, and what it should be good at.
@@ -76,7 +78,7 @@ Do not create planning artifacts for trivial edits, typo fixes, or one-shot chan
 
 ## Task personas
 
-Role-specific guidance lives under `personas/`:
+Role-specific guidance lives under `.concoct/personas/`:
 
 - `planner.md` — create or materially revise task plans
 - `code-developer.md` — implement an agreed task plan
@@ -90,7 +92,7 @@ Read and adopt the persona named by the current prompt before beginning that rol
 Active planning files live under:
 
 ```text
-.planning/current/
+.concoct/current/
   task-plan.md
   notes.md
 ```
@@ -98,7 +100,7 @@ Active planning files live under:
 Optional active review file:
 
 ```text
-.planning/current/
+.concoct/current/
   review.md
 ```
 
@@ -107,7 +109,7 @@ Only create `review.md` when there is a meaningful separate review phase.
 Completed planning artifacts should be archived under:
 
 ```text
-.planning/archive/YYYY-MM-DD-short-task-name/
+.concoct/archive/YYYY-MM-DD-short-task-name/
   task-plan.md
   notes.md
   summary.md
@@ -116,7 +118,7 @@ Completed planning artifacts should be archived under:
 If a review file was created, archive it too:
 
 ```text
-.planning/archive/YYYY-MM-DD-short-task-name/
+.concoct/archive/YYYY-MM-DD-short-task-name/
   review.md
 ```
 
@@ -124,7 +126,7 @@ The archive directory name should use the date the task was completed or archive
 
 ## Planning file purposes
 
-### `.planning/current/task-plan.md`
+### `.concoct/current/task-plan.md`
 
 The active task plan.
 
@@ -140,7 +142,7 @@ It should describe:
 
 This file is per task. Treat it like a user story, work item, or implementation ticket.
 
-### `.planning/current/notes.md`
+### `.concoct/current/notes.md`
 
 Durable working context for the active task.
 
@@ -157,7 +159,7 @@ This file is per `task-plan.md`.
 
 Keep it useful. Do not turn it into a transcript.
 
-### `.planning/current/review.md`
+### `.concoct/current/review.md`
 
 Optional separate review artifact.
 
@@ -183,8 +185,8 @@ For substantial work:
 
 1. Read this file.
 2. Read and adopt the persona selected by the current task prompt.
-3. Read `.planning/current/task-plan.md`.
-4. Read `.planning/current/notes.md` if it exists.
+3. Read `.concoct/current/task-plan.md`.
+4. Read `.concoct/current/notes.md` if it exists.
 5. Inspect the relevant code before making changes.
 6. Update the plan if inspection reveals the existing plan is wrong or incomplete.
 7. Make changes in small, understandable steps.
@@ -199,8 +201,8 @@ Planning files are working memory, not bureaucracy. Prefer compact, useful updat
 
 All agents should treat these as shared task context:
 
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
 Do not overwrite another agent's work without first reading the current files.
 
@@ -272,8 +274,8 @@ If a command fails, record the failure and either fix it or clearly explain why 
 
 Before finishing a substantial task:
 
-- Update `.planning/current/task-plan.md`.
-- Update `.planning/current/notes.md`.
+- Update `.concoct/current/task-plan.md`.
+- Update `.concoct/current/notes.md`.
 - Run formatting.
 - Run tests.
 - Run linting/vetting/typechecking where applicable.
@@ -281,7 +283,7 @@ Before finishing a substantial task:
 - Summarize what passed.
 - Summarize what remains.
 
-If the task is complete, archive the planning files under `.planning/archive/YYYY-MM-DD-short-task-name/` and add a `summary.md`.
+If the task is complete, archive the planning files under `.concoct/archive/YYYY-MM-DD-short-task-name/` and add a `summary.md`.
 
 ## Git hygiene
 

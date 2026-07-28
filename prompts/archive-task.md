@@ -9,18 +9,18 @@ Read `AGENTS.md` and the active planning artifacts before archiving. This is an 
 
 Archive the task artifacts from:
 
-- `.planning/current/task-plan.md`
-- `.planning/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/current/notes.md`
 
 Move them to:
 
-- `.planning/archive/YYYY-MM-DD-short-task-name/`
+- `.concoct/archive/YYYY-MM-DD-short-task-name/`
 
 Create:
 
-- `.planning/archive/YYYY-MM-DD-short-task-name/summary.md`
+- `.concoct/archive/YYYY-MM-DD-short-task-name/summary.md`
 
-If `.planning/current/review.md` exists, archive it too.
+If `.concoct/current/review.md` exists, archive it too.
 
 The summary should include:
 
@@ -34,5 +34,5 @@ The summary should include:
 
 Use hyphens in the archive directory name.
 
-After archiving, leave `.planning/current/` ready for the next task.
+After archiving, leave `.concoct/current/` ready for the next task.
 ```

@@ -1,6 +1,6 @@
-# Workflow
+# Concoct Workflow
 
-This workflow turns ideas into implementation-ready plans that any capable coding agent can execute.
+Concoct turns ideas into implementation-ready plans that any capable coding agent can execute.
 
 ## The loop
 
@@ -20,9 +20,13 @@ Archivist records the outcome
 Everybody's eatin' big time
 ```
 
+In short: `idea → Chappie concocts the plan → agents cook → eatin’ big time`.
+
+Concoct's source assets live in this repository's root-level directories. Projects initialized by Concoct keep their task state and personas under `.concoct/`, with `AGENTS.md` and tool-required adapters at the project root.
+
 The roles may be handled by different tools or by the same tool in different modes.
 
-Each role has reusable guidance under `personas/`. A task prompt selects the appropriate persona; the persona supplements the canonical project instructions and active task context.
+Each role has reusable guidance under `.concoct/personas/`. A task prompt selects the appropriate persona; the persona supplements the canonical project instructions and active task context.
 
 ## Durable files
 
@@ -49,8 +53,8 @@ It should describe:
 ### Active task files
 
 ```text
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
 These describe the current task and durable task context.
@@ -58,7 +62,7 @@ These describe the current task and durable task context.
 ### Archive files
 
 ```text
-.planning/archive/YYYY-MM-DD-short-task-name/
+.concoct/archive/YYYY-MM-DD-short-task-name/
   task-plan.md
   notes.md
   summary.md
@@ -80,19 +84,19 @@ Examples:
 CLAUDE.md
 CONVENTIONS.md
 .github/copilot-instructions.md
-.codex/skills/project-planning/SKILL.md
+.codex/skills/concoct/SKILL.md
 ```
 
 ## Personas
 
 Use one role persona at a time for the primary work being performed:
 
-- `personas/planner.md` for creating or materially revising a plan
-- `personas/code-developer.md` for implementation
-- `personas/code-reviewer.md` for independent review
-- `personas/doc-technical-writer-user.md` for end-user documentation
-- `personas/doc-technical-writer-api.md` for API documentation
-- `personas/doc-technical-writer-code.md` for code-oriented developer documentation
+- `.concoct/personas/planner.md` for creating or materially revising a plan
+- `.concoct/personas/code-developer.md` for implementation
+- `.concoct/personas/code-reviewer.md` for independent review
+- `.concoct/personas/doc-technical-writer-user.md` for end-user documentation
+- `.concoct/personas/doc-technical-writer-api.md` for API documentation
+- `.concoct/personas/doc-technical-writer-code.md` for code-oriented developer documentation
 
 Read the selected persona before starting the role. If a task spans implementation and documentation, use the developer persona for implementation and then explicitly switch to the appropriate writer persona for the documentation pass.
 

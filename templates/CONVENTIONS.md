@@ -13,10 +13,10 @@ AGENTS.md
 Active task context lives in:
 
 ```text
-.planning/current/task-plan.md
-.planning/current/notes.md
+.concoct/current/task-plan.md
+.concoct/current/notes.md
 ```
 
-Role-specific working guidance lives in `personas/`. Use the persona named by the current task prompt. Personas supplement the canonical instructions in `AGENTS.md`.
+Role-specific working guidance lives in `.concoct/personas/`. Use the persona named by the current task prompt. Personas supplement the canonical instructions in `AGENTS.md`.
 
 Use hyphens, not underscores, in file and directory names.
