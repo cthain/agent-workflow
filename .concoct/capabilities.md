@@ -101,6 +101,7 @@ Each prompt instructs an agent which persona and artifacts to read, which artifa
 - Audience: `project maintainers`
 - Added by: `baseline inventory`
 - Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
+- Updated by: `.concoct/archive/2026-07-29-CON-005-go-cli-foundation/`
 - Documentation: `README.md`, `templates/AGENTS.md`
 
 ### Capability
@@ -121,7 +122,6 @@ The template defines conventional root files and tool adapters alongside Concoct
 
 ### Limitations
 
-- The current bootstrap executable cannot install the template from its repository location because it resolves `templates/` and `personas/` relative to `cmd/concoct/`, where those directories do not exist.
 - Several template references use older persona names that do not match the persona files currently shipped.
 - The API, code, and user writer persona files are empty.
 - Installed templates require project-specific customization before they constitute finished project guidance.
@@ -129,13 +129,14 @@ The template defines conventional root files and tool adapters alongside Concoct
 ### Verification evidence
 
 - `templates/` contains the root adapters, `.concoct/` artifact hierarchy, persona files, prompts, and placeholder current-task files.
-- `bash -n cmd/concoct/concoct` passes.
-- An end-to-end invocation of `cmd/concoct/concoct` fails before project creation with `templates directory not found at: .../cmd/concoct/templates`.
+- `internal/project/project_test.go` verifies complete embedded template copying and real-Git initialization behavior.
+- `.concoct/archive/2026-07-29-CON-005-go-cli-foundation/review-03.md` records approval of caller-directory-independent initialization with root files, dotfiles, nested content, personas, prompts, staged files, and no generated commit.
 
 ### Related capabilities
 
 - `CAP-001` is the workflow contract represented by the template.
 - `CAP-004` describes the tool adapters included in the template.
+- `CAP-005` initializes projects from the embedded template and reports their workflow state.
 
 ## CAP-004 — Agent-neutral tool adapters
 
@@ -179,10 +180,52 @@ The adapters point tools to `AGENTS.md`, `.concoct/current/task-plan.md`, `.conc
 - `CAP-001` provides the canonical workflow and artifact rules referenced by the adapters.
 - `CAP-003` distributes the adapters with the project template.
 
+## CAP-005 — Executable CLI initialization and workflow status
+
+- Status: `active`
+- Audience: `project maintainers, developers, and coding agents`
+- Added by: `.concoct/archive/2026-07-29-CON-005-go-cli-foundation/`
+- Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`
+
+### Capability
+
+Concoct provides a Go CLI with `init` and read-only `status` commands. It can create a Concoct-enabled Git repository from the complete embedded project template and derive deterministic workflow state from canonical repository artifacts.
+
+### User value
+
+Project maintainers can bootstrap the workflow reliably from an installed binary, and humans or agents can inspect the current task, review outcome, capability impact, diagnostics, and recommended next action without manually interpreting artifact combinations.
+
+### Inputs
+
+- `concoct init <project>` accepts one new project target whose parent already exists.
+- `concoct status` runs from a Concoct project root or any nested directory.
+
+### Outputs and effects
+
+- `init` copies root files, dotfiles, nested templates, personas, and prompts; writes bootstrap guidance; initializes Git; stages generated files; and creates no commit.
+- `status` discovers the project, validates roadmap, capability, task, notes, review, remediation, and blocked-review evidence, then reports the applicable state and next action without modifying the repository.
+- Malformed, incomplete, contradictory, or representative interrupted-archive evidence is reported as `invalid` with actionable diagnostics.
+
+### Limitations
+
+- The initial executable surface implements only `init` and `status`; later workflow commands remain roadmap work.
+- Remediation disposition validation is textual because the notes schema does not define structured review-finding identifiers.
+- Metadata parsing intentionally targets the checked-in Concoct schemas rather than arbitrary Markdown documents.
+
+### Verification evidence
+
+- `internal/project/project_test.go` covers discovery, template copying, Git behavior, initialization safety, and read-only inspection.
+- `internal/workflow/workflow_test.go` covers normative states, metadata validation, sequential reviews, remediation, blocked-review recovery, composed recovery precedence, and invalid evidence.
+- `.concoct/archive/2026-07-29-CON-005-go-cli-foundation/review-03.md` records the approving independent review and end-to-end verification.
+
+### Related capabilities
+
+- `CAP-001` defines the workflow and state contract implemented by status detection.
+- `CAP-003` supplies the embedded project template used by initialization.
+- `CAP-004` supplies the agent adapters installed with that template.
+
 ## Known capability gaps
 
-- The initializer does not currently complete an end-to-end project bootstrap from its checked-in location.
-- The planned `init`, `status`, `roadmap`, `plan`, `code`, `review`, and `archive` command contracts and state transitions are not implemented as a CLI.
+- The planned `roadmap`, `plan`, `code`, `review`, and `archive` command contracts and state transitions are not implemented as CLI commands.
 - Prompt rendering, direct agent execution, workflow diagnostics, recovery, history reporting, upgrades, and overlays remain roadmap intent rather than current capabilities.
 - Repository documentation and parts of the template retain stale paths and persona names from earlier layouts.
-- There are no automated tests in the repository.

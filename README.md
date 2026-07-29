@@ -35,20 +35,18 @@ CONVENTIONS.md
 
 ## Repository layout
 
-Concoct's source files use ordinary root-level directories. The `.concoct/` directory is reserved for generated client installs.
+Concoct's source files use ordinary root-level directories. The `.concoct/`
+directory contains this repository's own workflow artifacts and has the same
+role in generated client projects.
 
 ```text
 .
 ├── AGENTS.md
 ├── README.md
 ├── LICENSE
-├── concoct
-├── current/       # Concoct's own active planning files
-├── archive/       # Concoct's completed task history
-├── docs/          # workflow documentation
-├── prompts/       # reusable role prompts
-├── personas/      # planner, developer, reviewer, and writer personas
-├── skills/        # skills for working on Concoct itself
+├── cmd/concoct/   # Go command and source-checkout wrapper
+├── .concoct/      # Concoct's own workflow artifacts
+├── doc/           # workflow and command documentation
 └── templates/     # files installed into generated projects
 ```
 
@@ -56,13 +54,18 @@ In a generated project, Concoct-owned task state and personas live under `.conco
 
 ## Bootstrap a project
 
+Build or install the Go CLI, then initialize a project from any working directory:
+
 ```bash
-git clone <repository-url>
-cd concoct
-./concoct ../my-new-project
+go build -o ./bin/concoct ./cmd/concoct
+./bin/concoct init ../my-new-project
 ```
 
-`concoct` creates the project, copies templates and personas (including dotfiles), initializes Git, stages the generated files, and writes:
+From a source checkout, `./cmd/concoct/concoct init ../my-new-project` is a thin
+compatibility wrapper around the same Go implementation.
+
+`concoct init` creates the project, copies its embedded templates and personas
+(including dotfiles), initializes Git, stages the generated files, and writes:
 
 ```text
 .concoct/current/bootstrap-prompt.md
@@ -70,28 +73,34 @@ cd concoct
 
 It does not create a commit. Review the staged files before committing them.
 
+Inspect workflow state from the project root or any nested directory:
+
+```bash
+concoct status
+```
+
 Next:
 
 1. Open the generated project.
-2. Give `.concoct/current/bootstrap-prompt.md` and your idea to Chappie or ChatGPT.
-3. Review the generated `README.md`, `AGENTS.md`, task plan, and notes.
-4. Ask a coding agent to adopt `.concoct/personas/code-developer.md` and implement the plan.
-5. Use the reviewer prompt before archiving completed work.
+2. Follow `.concoct/current/bootstrap-prompt.md` to start Product Owner intake.
+3. Use the handoff prompts under `.concoct/prompts/` for manual role transitions.
 
 ## Workflow
 
 Use planning files when losing context would be costly: architecture changes, multi-file refactors, features, public API changes, repository setup, or multi-session work. Skip them for tiny edits and one-shot answers.
 
-The reusable prompts are in `prompts/`:
+The reusable prompts are in `.concoct/prompts/`. See
+[workflow.md](doc/workflow.md) for the full loop and
+[multi-agent-workflow.md](doc/multi-agent-workflow.md) for role coordination.
 
-- `create-task-plan.md`
-- `continue-task.md`
-- `review-task.md`
-- `document-task.md`
-- `archive-task.md`
-- `multi-agent-handoff.md`
+## Development
 
-See [workflow.md](docs/workflow.md) for the full loop and [multi-agent-workflow.md](docs/multi-agent-workflow.md) for role coordination.
+```bash
+go test ./...
+go vet ./...
+go build ./cmd/concoct
+bash -n cmd/concoct/concoct
+```
 
 ## Naming conventions
 

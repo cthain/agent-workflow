@@ -191,10 +191,12 @@ It is not:
 
 ## CON-005 — Implement the Concoct CLI foundation in Go
 
-- Status: `planned`
+- Status: `delivered`
 - Priority: `critical`
 - Depends on: CON-003
 - Capability impact: adds the executable CLI foundation
+- Delivered: `.concoct/archive/2026-07-29-CON-005-go-cli-foundation/`
+- Capability: CAP-005
 
 ### Outcome
 
