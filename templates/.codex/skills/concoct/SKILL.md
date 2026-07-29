@@ -1,15 +1,29 @@
 ---
 name: concoct
-description: Lightweight file-based planning for coding-agent tasks that touch multiple files, require architectural judgment, or may span multiple sessions.
+description: Agent-neutral workflow coordination for substantial software work using durable roadmap, capability, planning, review, handoff, and archive artifacts.
 user-invocable: true
 allowed-tools: "Read Write Edit Bash Glob Grep"
 ---
 
-# Project Planning
+# Concoct
 
-Use this Concoct skill for substantial coding work.
+Use this skill for substantial software work that touches multiple files, requires product or architectural judgment, benefits from independent review, or may span multiple sessions.
 
-Do not use it for trivial edits, typo fixes, or one-shot answers.
+Do not use it for trivial edits, typo fixes, quick lookups, or one-shot answers.
+
+Concoct coordinates the workflow:
+
+```text
+human input
+  → product-owner
+  → task-planner
+  → developer
+  → reviewer
+      ├─ changes requested → developer
+      ├─ blocked → responsible role or human
+      └─ approved → archivist
+                      → product-owner / next task
+```
 
 ## Canonical instructions
 
@@ -21,68 +35,444 @@ AGENTS.md
 
 `AGENTS.md` is the canonical project instruction file.
 
-## Files
+Personas, prompts, plans, notes, reviews, roadmaps, capabilities, and archives supplement `AGENTS.md`. They do not override higher-priority instructions.
+
+## Canonical artifacts
 
 Use these files in the project root:
 
 - `AGENTS.md` — standing repository instructions
-- `.concoct/current/task-plan.md` — the active plan
-- `.concoct/current/notes.md` — durable decisions, findings, failed attempts, handoffs, and follow-up ideas
-- `.concoct/personas/` — role-specific guidance selected by the current task prompt
+- `.concoct/capabilities.md` — current accepted product capabilities
+- `.concoct/roadmap.md` — intended future product work
+- `.concoct/current/task-plan.md` — active implementation plan
+- `.concoct/current/notes.md` — durable task context and handoffs
+- `.concoct/current/review-NN.md` — sequential review artifacts
+- `.concoct/archive/` — completed task history
+- `.concoct/personas/` — role-specific guidance
+- `.concoct/prompts/` — reusable human-input and transition prompts
 
-Do not create extra planning files unless the task genuinely needs them.
+Do not create extra workflow artifacts unless the task genuinely needs them.
+
+## Artifact responsibilities
+
+### `capabilities.md`
+
+Records what the product can do now.
+
+It is not a backlog, roadmap, changelog, task history, or design proposal.
+
+Update it only after accepted work is archived.
+
+### `roadmap.md`
+
+Records intended future work.
+
+Roadmap items should describe coherent product outcomes, not implementation steps.
+
+The Product Owner owns this file.
+
+### `task-plan.md`
+
+Records the active implementation task.
+
+It should include:
+
+- goal and context;
+- current and target state;
+- constraints;
+- non-goals;
+- assumptions;
+- risks and open questions;
+- implementation phases;
+- observable acceptance criteria;
+- verification expectations;
+- capability impact.
+
+The Task Planner owns initial creation and material planning changes.
+
+The Developer may update implementation status and make technical refinements that remain within approved product scope.
+
+### `notes.md`
+
+Records durable task context:
+
+- decisions;
+- findings;
+- meaningful failed attempts;
+- risks;
+- test results;
+- review-finding dispositions;
+- handoffs;
+- follow-up ideas.
+
+Do not turn it into a transcript or raw command log.
+
+### `review-NN.md`
+
+Records independent review history.
+
+Review files are sequential, zero-padded, reviewer-owned, and append-only after completion:
+
+```text
+review-01.md
+review-02.md
+review-03.md
+```
+
+Each review must have exactly one outcome:
+
+```text
+approved
+changes-requested
+blocked
+```
+
+### Archive
+
+Completed tasks live under:
+
+```text
+.concoct/archive/YYYY-MM-DD-roadmap-id-short-task-name/
+```
+
+The archive should preserve:
+
+- `task-plan.md`;
+- `notes.md`;
+- all review files;
+- `summary.md`;
+- any other approved durable task artifacts.
 
 ## Personas
 
-Adopt the persona selected by the task prompt. Use `.concoct/personas/planner.md` when creating or materially revising a plan, `.concoct/personas/code-developer.md` when implementing, and `.concoct/personas/reviewer.md` for an independent review. Documentation work may use the audience-specific technical-writer personas. Personas supplement `AGENTS.md` and never override higher-priority instructions.
+Adopt the persona selected by the current prompt or workflow state.
 
-## Workflow
+Canonical personas:
 
-### 1. Re-orient
+- `.concoct/personas/product-owner.md`
+- `.concoct/personas/task-planner.md`
+- `.concoct/personas/developer.md`
+- `.concoct/personas/reviewer.md`
+- `.concoct/personas/archivist.md`
+
+Additional audience-specific documentation personas may exist.
+
+Do not combine incompatible roles in one pass unless explicitly instructed.
+
+In particular:
+
+- the Developer does not approve or archive its own work;
+- the Reviewer does not implement fixes;
+- the Archivist does not approve work;
+- the Task Planner does not invent product direction;
+- the Product Owner does not prescribe implementation details.
+
+## Role workflows
+
+### Human input to Product Owner
+
+When a human provides a product idea, concern, request, or change in direction:
+
+1. Read `AGENTS.md`.
+2. Read the Product Owner persona.
+3. Read `capabilities.md`.
+4. Read `roadmap.md`.
+5. Read relevant archive summaries.
+6. Determine whether the input:
+   - is already a capability;
+   - already exists on the roadmap;
+   - should update an existing item;
+   - should become a new item;
+   - should remain a candidate;
+   - should be deferred, rejected, or clarified.
+7. Update `roadmap.md` only when sufficiently understood.
+8. Preserve stable roadmap identifiers.
+9. Do not create active task artifacts.
+
+When ready for planning, recommend:
+
+```text
+concoct plan <roadmap-id>
+```
+
+### Product Owner to Task Planner
+
+Before creating an active plan:
+
+1. Read `AGENTS.md`.
+2. Read the Task Planner persona.
+3. Read `capabilities.md`.
+4. Read `roadmap.md`.
+5. Read relevant archive history.
+6. Inspect relevant code, tests, and documentation.
+7. Confirm:
+   - the roadmap item exists;
+   - dependencies are satisfied or explicitly handled;
+   - no conflicting active task exists;
+   - product intent is sufficiently clear;
+   - repository reality supports the plan.
+
+Create or update:
+
+```text
+.concoct/current/task-plan.md
+.concoct/current/notes.md
+```
+
+Do not implement code.
+
+When ready, recommend:
+
+```text
+concoct code
+```
+
+### Task Planner to Developer
 
 Before editing code:
 
 1. Read `AGENTS.md`.
-2. Read `.concoct/current/task-plan.md`.
-3. Read `.concoct/current/notes.md` if it exists.
+2. Read the Developer persona.
+3. Read `capabilities.md`.
+4. Read the active task plan.
+5. Read notes.
+6. Read the latest review when one exists.
+7. Inspect relevant code, tests, documentation, and archive references.
+8. Validate plan assumptions against repository reality.
 
-### 2. Plan only enough
+During implementation:
 
-Keep the plan useful, not ceremonial.
-
-A good plan includes:
-
-- goal
-- context
-- constraints
-- non-goals
-- phases or checklist
-- completion criteria
-
-### 3. Write down durable findings
-
-Update `.concoct/current/notes.md` when you discover something that affects the implementation, design, tests, or future work.
-
-Do not log obvious facts or noisy command output.
-
-### 4. Avoid dumb retry loops
-
-If an action fails, do not repeat the exact same action blindly.
-
-Record the failure in `.concoct/current/notes.md` when it matters.
-
-### 5. Finish cleanly
+- keep changes focused;
+- respect constraints and non-goals;
+- update plan phase statuses honestly;
+- record durable findings and decisions;
+- run relevant checks;
+- avoid unrelated cleanup;
+- do not update roadmap or capabilities;
+- do not create or modify review artifacts.
 
 Before finishing:
 
-1. Update `.concoct/current/task-plan.md` statuses.
-2. Update `.concoct/current/notes.md` with important decisions or remaining follow-up work.
-3. Run the relevant project checks.
-4. Report what changed, what passed, and what remains.
-5. If the task is complete, archive the planning files and create `summary.md`.
+1. Inspect the final diff.
+2. Run relevant verification.
+3. Update `task-plan.md`.
+4. Update `notes.md`.
+5. Add a reviewer handoff covering:
+   - implemented work;
+   - key decisions;
+   - files changed;
+   - checks run;
+   - known risks;
+   - skipped or unresolved work;
+   - capability impact;
+   - suggested review focus.
+
+Then recommend:
+
+```text
+concoct review
+```
+
+### Developer to Reviewer
+
+The Reviewer must independently inspect the implementation.
+
+Read:
+
+- `AGENTS.md`;
+- the Reviewer persona;
+- `capabilities.md`;
+- the task plan;
+- notes;
+- all prior reviews;
+- the complete diff;
+- relevant code, tests, and documentation.
+
+Create the next sequential review file.
+
+Assess:
+
+- task goal;
+- constraints;
+- non-goals;
+- acceptance criteria;
+- scope discipline;
+- correctness;
+- compatibility;
+- tests;
+- documentation;
+- capability impact;
+- prior finding disposition.
+
+Do not implement fixes.
+
+Next transition:
+
+```text
+approved          → concoct archive
+changes-requested → concoct code
+blocked           → responsible role or human decision
+```
+
+### Reviewer to Developer
+
+When the latest review is `changes-requested`, operate in remediation mode.
+
+For each unresolved finding:
+
+1. determine whether it is valid;
+2. implement the required outcome when valid;
+3. record the disposition in `notes.md` as:
+   - fixed;
+   - partially fixed;
+   - disputed with evidence;
+   - obsolete;
+   - blocked;
+4. add or update tests where needed.
+
+Do not edit review files.
+
+After remediation:
+
+- run relevant checks;
+- update the task plan;
+- update notes;
+- add a fresh reviewer handoff;
+- recommend `concoct review`.
+
+### Reviewer blocked
+
+When review is `blocked`, route the issue to the correct destination:
+
+- Product Owner — product intent, capability behavior, scope, or priority;
+- Task Planner — defective, contradictory, oversized, or unreviewable plan;
+- Developer — missing code, tests, documentation, or evidence within scope;
+- human decision-maker — authorization or external knowledge required.
+
+State:
+
+- blocker;
+- evidence;
+- why review cannot continue;
+- required decision or work;
+- responsible role;
+- artifacts to update;
+- recommended next action.
+
+### Reviewer to Archivist
+
+Archive only when the latest review is `approved`, unless an explicit override is authorized and preserved.
+
+Before archiving:
+
+1. Read `AGENTS.md`.
+2. Read the Archivist persona.
+3. Read capabilities, roadmap, task plan, notes, all reviews, relevant changes, tests, and documentation.
+4. Validate metadata, roadmap ID, approval, capability impact, required artifacts, implementation presence, and archive destination.
+
+Archive transactionally:
+
+1. create the archive directory;
+2. copy accepted task artifacts;
+3. create `summary.md`;
+4. reconcile `capabilities.md` with delivered behavior;
+5. mark the roadmap item `delivered`;
+6. add cross-references;
+7. validate the archive;
+8. clear or reset `.concoct/current/` only after durable writes succeed;
+9. confirm the repository is ready for the next task.
+
+Do not rewrite historical artifacts.
+
+Then recommend:
+
+```text
+concoct roadmap
+```
+
+or:
+
+```text
+concoct plan <roadmap-id>
+```
+
+## Workflow state discipline
+
+Do not infer success from intent alone.
+
+Use durable artifacts as workflow evidence.
+
+Typical progression:
+
+```text
+ready
+  → planned
+  → implementation-in-progress
+  → implementation-complete
+  → changes-requested
+  → implementation-in-progress
+  → approved
+  → archived
+  → ready
+```
+
+Invalid or ambiguous transitions should stop with a clear explanation and recommended recovery action.
+
+## Avoid dumb retry loops
+
+If an action fails, do not repeat the exact same action blindly.
+
+When a failure affects future work, record:
+
+```md
+### Attempt: short title
+
+- Tried:
+- Error/result:
+- Why it failed:
+- Next approach:
+```
+
+## Handoffs
+
+Every role transition should state:
+
+- current state;
+- work completed;
+- work remaining;
+- decisions made;
+- known risks;
+- checks run;
+- artifacts created or updated;
+- expected next role;
+- recommended next command.
+
+Handoffs are durable context, not conversational ceremony.
 
 ## Good judgment
 
-Planning files are working memory, not bureaucracy.
+Concoct artifacts are working memory and project history, not bureaucracy.
 
-Prefer useful, compact updates over exhaustive journaling.
+Prefer compact, useful updates over exhaustive journaling.
+
+Do not:
+
+- duplicate information across artifacts without purpose;
+- hide unresolved ambiguity;
+- silently broaden scope;
+- rewrite history;
+- mark unrun checks as passing;
+- update capability truth before acceptance;
+- archive unapproved work by default;
+- combine product ownership, implementation, review, and archival authority in one role.
+
+## Completion expectations
+
+A workflow step is complete when:
+
+- the active persona's responsibilities are satisfied;
+- owned artifacts are updated;
+- non-owned artifacts remain untouched;
+- relevant checks are run or limitations documented;
+- durable findings are preserved;
+- the next valid transition is explicit.
