@@ -15,7 +15,7 @@ Concoct is a lightweight, agent-neutral workflow coordinator that turns rough id
 Core loop:
 
 ```text
-idea → Chappie concocts the plan → agents cook → eatin' big time
+human idea → concoct(**product-owner** → roadmap → **task-planner** → task-plan → **developer** → source code → **reviewer** → review → **archivist** → capabilities) → product
 ```
 
 This file records intended future work.
