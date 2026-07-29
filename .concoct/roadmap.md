@@ -382,7 +382,7 @@ Creates:
 
 - Status: `planned`
 - Priority: `high`
-- Depends on: CON-004, CON-005, CON-006
+- Depends on: CON-004, CON-005, CON-006, CON-015
 - Capability impact: adds roadmap-to-task transition
 
 ### Outcome
@@ -465,7 +465,7 @@ concoct review
 
 - Status: `planned`
 - Priority: `high`
-- Depends on: CON-004, CON-005, CON-008
+- Depends on: CON-004, CON-005, CON-008, CON-015
 - Capability impact: adds accepted-task archival
 
 ### Outcome
@@ -760,15 +760,96 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 
 ---
 
+## CON-015 — Isolate and integrate tasks with Git branches
+
+- Status: `blocked`
+- Priority: `high`
+- Depends on: CON-003, CON-005
+- Capability impact: adds a Git-backed task branch lifecycle to planning and archival
+- Blocker: CON-005 must deliver the executable CLI foundation needed for Git-aware state detection and commands.
+
+### Outcome
+
+For a Concoct-enabled Git repository, keep roadmap intake and selection on the current trunk while carrying each planned task through implementation and review on a dedicated feature branch, then integrate approved and archived work back into the trunk from which the task began.
+
+### Rationale
+
+Concoct currently coordinates artifact ownership and role transitions without isolating task changes from the repository's current branch. A durable task-to-branch association protects the trunk as the home of the roadmap, gives implementation and review a bounded change set, and makes integration an explicit acceptance step rather than an incidental user action.
+
+### Requirements
+
+- Apply the branch lifecycle only when the project is inside a Git repository; define and preserve appropriate behavior for non-Git projects.
+- Start planning from the user's current branch and preserve that branch as the task's integration trunk.
+- Give each task branch a deterministic name derived from the roadmap identifier and the roadmap item's short name.
+- Create and switch to the task branch as part of establishing the active task, before task implementation begins.
+- Preserve durable evidence linking the active task, its task branch, and its integration trunk so later roles do not infer them from ambient checkout state.
+- Require development, remediation, and review for the task to remain associated with the task branch.
+- After approval, have the Archivist update and validate archival and capability records, plus the pending roadmap reconciliation, on the task branch before integrating the accepted task into its recorded trunk; mark the roadmap item delivered only after integration succeeds.
+- Return to `ready` only when archival reconciliation and integration into the recorded trunk have both succeeded.
+- Detect unsafe starting states, branch-name collisions, checkout drift, integration conflicts, and partial completion without overwriting work or losing workflow evidence.
+- Keep the workflow usable with local Git repositories and avoid requiring a hosting provider, pull request, or remote branch.
+
+### Product decisions
+
+- Concoct creates a commit for each role transition that produces task changes. The Archivist owns the archival commit before integration.
+- Accepted task branches are squash-merged into their recorded trunk and deleted after successful integration.
+- The branch checked out when planning begins is the task's recorded integration trunk. Concoct does not infer or require a conventional primary branch.
+- A clean worktree means that `git status --short` produces no entries at workflow input and output boundaries. Local commits that have not been pushed do not make the worktree dirty.
+- When the recorded trunk has a matching upstream branch, Concoct prompts before pushing by default; a project may explicitly enable automatic pushes. Without a matching upstream, Concoct works locally and does not attempt to push.
+- Any conflict reported by Git during merge or rebase requires human-owned integration recovery; Concoct does not attempt to resolve conflicted paths autonomously. The handoff must preserve the task and archival evidence, explain the conflict, and recommend a resolution.
+- Non-Git projects continue through the existing unbranched local workflow; Git is not a prerequisite for using Concoct.
+- Git archival introduces an `integrating` state when integration requires human intervention and an `integrated` state after integration succeeds but before the workflow returns to `ready`.
+
+### Remaining product decisions before planning
+
+None.
+
+### Integration recovery
+
+- When Git reports a conflict during squash integration, Concoct enters the `integrating` state, leaves the recorded trunk checked out, and preserves the task branch, archival commit, pre-integration trunk commit, and recovery metadata.
+- The human resolves conflicted paths and stages the intended integration result but does not create the squash commit manually.
+- `concoct integrate --continue` resumes the workflow. It validates the recorded trunk, task branch and archival commit, pre-integration trunk head, resolved index, staged changes, expected archival records, and absence of unrelated repository operations before creating the squash integration commit.
+- Invoking `concoct integrate --continue` is the human attestation that the staged semantic conflict resolution is correct. Concoct validates repository and workflow structure but does not independently determine whether human conflict choices are semantically correct.
+- After creating the squash commit, Concoct enters `integrated`, records the integration commit in durable archival metadata through a final bookkeeping commit, deletes the accepted task branch, resets active workflow artifacts, and returns to `ready`.
+- `concoct integrate --continue` is idempotent and may resume either an incomplete `integrating → integrated` transition or an incomplete `integrated → ready` transition.
+- `concoct integrate --abort` abandons the current integration attempt, restores the recorded trunk to its pre-integration state, preserves and checks out the approved task branch, and returns the workflow to its pre-integration archived state.
+- Concoct stores local recovery metadata under `.git/concoct/integrations/<task-id>.md` while the operation is incomplete. The committed archive remains the authoritative historical record after integration succeeds.
+
+### Archived state and integration entry point
+
+- `concoct archive` ends in the observable `archived` state. In this state, the latest review is approved, the accepted task artifacts and archive summary exist on the task branch, capability and roadmap reconciliation has been committed, the archival commit is recorded, and integration into the recorded trunk remains pending.
+- An archived task is not yet delivered and the repository is not yet `ready`.
+- `concoct integrate` starts or retries squash integration of the recorded archival commit into the recorded integration trunk.
+- `concoct integrate` is valid only from `archived`. It validates the recorded trunk, task branch, task base, archival commit, clean worktree, and absence of another active Git operation before beginning integration.
+- A successful integration advances through `integrated` and then completes final bookkeeping, branch deletion, active-state cleanup, and transition to `ready`.
+- A Git conflict leaves the workflow in `integrating`.
+- `concoct integrate --continue` resumes an active integration after the human resolves and stages conflicted paths.
+- `concoct integrate --abort` abandons the active integration attempt, restores the recorded trunk to its pre-integration state, preserves the task branch and archival commit, and returns the workflow to `archived`.
+- After an abort, a new integration attempt is started with `concoct integrate`, not `concoct integrate --continue`.
+- The roadmap item is marked `delivered` only after integration succeeds and final workflow cleanup completes.
+
+### Acceptance criteria
+
+- Planning an eligible roadmap item in a Git repository establishes and checks out a deterministically named task branch and records its source trunk.
+- Code and review transitions reject or clearly diagnose operation from a checkout that does not match the active task branch.
+- Approved archival reconciles durable product records before integrating the task branch into its recorded trunk.
+- Successful integration leaves the recorded trunk checked out, containing the accepted implementation and archival records, with the roadmap item delivered and the repository in `ready` state.
+- An integration conflict leaves the workflow in `integrating` with the task branch and archival evidence preserved until human resolution can be validated.
+- A collision, dirty worktree, checkout mismatch, merge conflict, or interrupted integration preserves recoverable task and repository evidence and reports an actionable next step.
+- The feature does not require a remote repository or a provider-specific review mechanism.
+- Non-Git project behavior is explicit and does not fail merely because Git branch isolation is unavailable.
+
+---
+
 ## Recommended implementation order
 
 Implement in this order:
 
 ```text
-CON-003  Command contract and state machine
 CON-004  Capability ledger
 CON-005  Go CLI foundation and status
 CON-006  Deterministic prompt rendering
+CON-015  Git-backed task isolation and integration
 CON-007  Active task planning
 CON-008  Code and review transitions
 CON-009  Archive and capability reconciliation
