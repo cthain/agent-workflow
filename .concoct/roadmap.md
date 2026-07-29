@@ -664,6 +664,56 @@ concoct capability <capability-id>
 
 ---
 
+## CON-013 — Add opt-in client project upgrades
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-005
+- Capability impact: adds safe lifecycle upgrades for Concoct-enabled projects
+
+### Outcome
+
+Allow a user to run:
+
+```text
+concoct upgrade
+```
+
+to deliberately bring an existing Concoct-enabled project onto a supported newer Concoct contract without silently replacing project-owned content or losing workflow history.
+
+### Rationale
+
+Concoct installs durable workflow files into client repositories. As that installed contract evolves, users need a low-friction maintenance path that keeps client projects current while respecting local changes and making every upgrade an explicit choice.
+
+### Requirements
+
+- Make upgrades opt-in and show the proposed target before changing the project.
+- Identify the project's installed Concoct version or contract level and report when its origin cannot be determined reliably.
+- Preview the affected files, migrations, conflicts, and preserved local changes.
+- Distinguish Concoct-owned state from conventional project files and locally customized guidance.
+- Never silently overwrite conflicting client changes; stop with actionable choices or preserve them for explicit reconciliation.
+- Preserve active task state, roadmap and capability records, reviews, archives, and repository history across supported upgrades.
+- Leave the project recoverable when an upgrade cannot complete, and report what changed and what remains unresolved.
+- Explain when a source or target version is unsupported and recommend a safe next action.
+
+### Product decisions before planning
+
+- Define how installed projects record their Concoct version or contract level.
+- Define the authoritative source of upgrade content and how users select or constrain a target release.
+- Define ownership and merge policy for conventional files that Concoct installs but projects are expected to customize, including `AGENTS.md` and tool adapters.
+- Decide whether preview is the default behavior or whether execution instead requires an explicit confirmation or apply option.
+
+### Acceptance criteria
+
+- An eligible client project can preview an upgrade without mutation.
+- Applying an upgrade requires explicit user intent and reports the selected source and target.
+- An unmodified supported installation upgrades to the expected contract while preserving project workflow data.
+- Locally modified or ambiguous files are never overwritten without an explicit resolution.
+- Failed or unsupported upgrades leave the project usable and provide actionable recovery guidance.
+- A completed upgrade reports every changed, preserved, skipped, and conflicted artifact.
+
+---
+
 ## Recommended implementation order
 
 Implement in this order:
@@ -686,6 +736,7 @@ Treat these as later work:
 CON-010  Direct agent execution
 CON-011  Diagnostics and recovery
 CON-012  Archaeology and reporting
+CON-013  Client project upgrades
 ```
 
 ## First task
