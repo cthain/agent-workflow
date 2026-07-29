@@ -320,7 +320,7 @@ Generated prompts are reproducible output and should not be committed by default
 Reads:
 
 - `AGENTS.md`
-- `.concoct/personas/planner.md`
+- `.concoct/personas/product-owner.md`
 - `.concoct/capabilities.md`
 - `.concoct/roadmap.md`
 - relevant archive summaries
@@ -770,11 +770,10 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 
 ## CON-015 — Isolate and integrate tasks with Git branches
 
-- Status: `blocked`
+- Status: `planned`
 - Priority: `high`
 - Depends on: CON-003, CON-005
 - Capability impact: adds a Git-backed task branch lifecycle to planning and archival
-- Blocker: CON-005 must deliver the executable CLI foundation needed for Git-aware state detection and commands.
 
 ### Outcome
 
