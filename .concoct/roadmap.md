@@ -141,10 +141,16 @@ doc/state-machine.md
 
 ## CON-004 — Establish `capabilities.md` as current accepted product truth
 
-- Status: `planned`
+- Status: `cancelled`
 - Priority: `high`
 - Depends on: None
-- Capability impact: adds the capability ledger
+- Capability impact: none; the accepted baseline inventory already established the capability ledger
+
+### Resolution
+
+Cancelled as redundant on 2026-07-29. The pre-workflow baseline inventory already established `.concoct/capabilities.md`, stable `CAP-*` identifiers, capability-aware planning guidance, and archive reconciliation rules. The historical override archive records the inventory evidence without representing an approving review, while archived CON-003 demonstrates reviewed reconciliation of `CAP-001`.
+
+This item is intentionally not marked `delivered`: no approved CON-004 task archive exists. Creating implementation work solely to manufacture that history would add no product outcome. Existing roadmap work may rely directly on the accepted capability truth rather than on delivery of CON-004.
 
 ### Outcome
 
@@ -382,7 +388,7 @@ Creates:
 
 - Status: `planned`
 - Priority: `high`
-- Depends on: CON-004, CON-005, CON-006, CON-015
+- Depends on: CON-005, CON-006, CON-015
 - Capability impact: adds roadmap-to-task transition
 
 ### Outcome
@@ -465,7 +471,7 @@ concoct review
 
 - Status: `planned`
 - Priority: `high`
-- Depends on: CON-004, CON-005, CON-008, CON-015
+- Depends on: CON-005, CON-008, CON-015
 - Capability impact: adds accepted-task archival
 
 ### Outcome
@@ -846,7 +852,6 @@ None.
 Implement in this order:
 
 ```text
-CON-004  Capability ledger
 CON-005  Go CLI foundation and status
 CON-006  Deterministic prompt rendering
 CON-015  Git-backed task isolation and integration
