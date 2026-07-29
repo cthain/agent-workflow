@@ -1,413 +1,184 @@
 ---
 version: 1
-project: <project-name>
-updated: YYYY-MM-DD
+project: concoct
+updated: 2026-07-29
 ---
 
 # Capabilities
 
 ## Purpose
 
-This file is the canonical human-readable record of what `<project-name>` can do now.
+This file is the canonical human-readable record of what Concoct can do now. It describes observable behavior evidenced by the repository, not planned behavior from the roadmap.
 
-It describes current, accepted product behavior.
+This initial inventory predates Concoct's normal reviewed-task archive history. Its entries therefore cite repository evidence directly and have no delivery archive or roadmap attribution.
 
-It is intended to give humans and agents a reliable product baseline without requiring them to infer the complete product surface from source code alone.
-
-This file is distinct from:
-
-- `.concoct/roadmap.md`, which records intended future work;
-- `.concoct/current/task-plan.md`, which records the active implementation task;
-- `.concoct/archive/`, which preserves completed task history;
-- `CHANGELOG.md`, which records changes over time;
-- implementation documentation, which explains how the system works internally.
-
-The Archivist owns updates to this file after approved work is archived.
-
-## Capability principles
-
-### Describe current truth
-
-Only record behavior that currently exists and has been accepted.
-
-Do not record:
-
-- planned work;
-- partially implemented behavior;
-- unapproved changes;
-- ideas;
-- aspirations;
-- historical task details;
-- speculative future support.
-
-### Describe observable behavior
-
-Capabilities should explain what the product enables, not how it is implemented.
-
-Good:
-
-```text
-The application can export reports in CSV format.
-```
-
-Too implementation-specific:
-
-```text
-The report service calls `encoding/csv` from the export handler.
-```
-
-Include implementation details only when they materially constrain how the capability is used.
-
-### Preserve stable identifiers
-
-Each capability has a stable identifier.
-
-Recommended format:
-
-```text
-CAP-NNN
-```
-
-Examples:
-
-```text
-CAP-001
-CAP-002
-CAP-003
-```
-
-Do not renumber or reuse capability identifiers.
-
-### Keep capability scope coherent
-
-One capability should represent one independently understandable product behavior or closely related capability group.
-
-Split a capability when:
-
-- different parts can exist independently;
-- different audiences use them differently;
-- limitations or lifecycle differ materially;
-- future roadmap work is likely to affect only one part.
-
-Do not split capabilities into trivial implementation fragments.
-
-### Record meaningful limitations
-
-A capability description should include limitations that affect users, operators, integrators, or future planning.
-
-Do not clutter entries with incidental implementation constraints.
-
-### Preserve traceability
-
-Where practical, reference:
-
-- the roadmap item that delivered or changed the capability;
-- the archive summary that records acceptance;
-- relevant user or API documentation.
-
-Traceability should support archaeology without turning this file into a changelog.
-
-## Capability status
-
-Capabilities in this file are normally current and available.
-
-When the schema needs an explicit status, use:
-
-- `active` — currently available;
-- `deprecated` — still available but expected to be removed or replaced;
-- `limited` — available with a material limitation;
-- `removed` — no longer available, retained only for traceability.
-
-Prefer removing obsolete entries from the current capability sections only when project conventions preserve removal history elsewhere.
-
-Do not silently erase capability history when other artifacts reference its identifier.
-
----
-
-## CAP-001 — <Capability title>
+## CAP-001 — Durable file-based workflow contract
 
 - Status: `active`
-- Audience: `<user | operator | administrator | developer | integrator | multiple>`
-- Added by: `<ROADMAP-ID>`
-- Archive: `.concoct/archive/YYYY-MM-DD-roadmap-id-short-task-name/`
-- Documentation: `<path or none>`
+- Audience: `developers and coding agents`
+- Added by: `baseline inventory`
+- Archive: `none — initial inventory`
+- Documentation: `.codex/skills/concoct/SKILL.md`, `doc/workflow.md`
 
 ### Capability
 
-Describe what the product can currently do.
-
-Use present tense.
-
-Example:
-
-```text
-The product can initialize a new local project with the standard repository instructions, workflow directories, and agent-specific adapter files.
-```
+Concoct provides a Markdown-based workflow contract for moving substantial software work through product ownership, task planning, implementation, independent review, and archival. The contract defines canonical roadmap, capability, active-task, review, persona, prompt, and archive artifacts, their ownership, and the expected handoffs between roles.
 
 ### User value
 
-Explain why this capability matters and who benefits.
+Humans and agents can preserve product direction, task state, decisions, review evidence, and accepted outcomes in version-controlled files instead of relying on one tool's conversation history.
 
 ### Inputs
 
-Describe the meaningful inputs required to use the capability.
-
-Use:
-
-```text
-None.
-```
-
-when there are no user-supplied inputs.
+A repository whose participants follow `AGENTS.md` and the relevant Concoct artifacts and role guidance.
 
 ### Outputs and effects
 
-Describe observable outputs, state changes, or side effects.
+The workflow produces and maintains human-readable roadmap, task-plan, notes, sequential review, capability, and archive records. The files remain inspectable and usable without a Concoct service or database.
 
 ### Limitations
 
-- Material limitation
-- Unsupported case
-- Important operational boundary
-
-Use:
-
-```text
-None currently documented.
-```
-
-when no meaningful limitations are known.
+- Workflow transitions are currently carried out by humans or agents following the files; they are not enforced by a state-aware CLI.
+- The repository contains no automated validation for artifact metadata or workflow state.
 
 ### Verification evidence
 
-Reference evidence that supports the current capability claim.
-
-Examples:
-
-- automated tests;
-- end-to-end tests;
-- command examples;
-- approved review;
-- documentation;
-- archive summary.
+- `.codex/skills/concoct/SKILL.md` defines the canonical artifacts, role workflows, state discipline, review outcomes, and archive process.
+- `.concoct/personas/product-owner.md`, `task-planner.md`, `developer.md`, `reviewer.md`, and `archivist.md` provide role-specific operating guidance.
+- `.concoct/roadmap.md` and `.concoct/current/` demonstrate the living artifact layout in this repository.
 
 ### Related capabilities
 
-- `CAP-XXX` — relationship
-- `CAP-YYY` — relationship
+- `CAP-002` supplies reusable prompts for the workflow transitions.
+- `CAP-003` packages the contract for use in another repository.
+- `CAP-004` connects several coding-agent tools to the shared contract.
 
-Use:
-
-```text
-None.
-```
-
-when the capability is independent.
-
----
-
-## CAP-002 — <Capability title>
+## CAP-002 — Manual role-transition prompts
 
 - Status: `active`
-- Audience: `<audience>`
-- Added by: `<ROADMAP-ID>`
-- Archive: `.concoct/archive/YYYY-MM-DD-roadmap-id-short-task-name/`
-- Documentation: `<path or none>`
+- Audience: `developers and coding agents`
+- Added by: `baseline inventory`
+- Archive: `none — initial inventory`
+- Documentation: `.concoct/prompts/README.md`
 
 ### Capability
 
-Describe the current accepted behavior.
+Concoct provides reusable prompts for roadmap intake and for handoffs from product owner to task planner, task planner to developer, developer to reviewer, reviewer to developer or archivist, blocked reviewer to the responsible role, and archivist back to product owner.
 
 ### User value
 
-Explain the value.
+Users can run the workflow manually with an agent while keeping role boundaries, required inputs, allowed mutations, completion evidence, and next actions explicit.
 
 ### Inputs
 
-Describe required inputs.
+The repository's current workflow artifacts and the prompt matching the desired transition.
 
 ### Outputs and effects
 
-Describe observable results.
+Each prompt instructs an agent which persona and artifacts to read, which artifacts the selected role may update, what outcome to produce, and which transition should follow.
 
 ### Limitations
 
-- Limitation
+- Prompts must currently be selected and supplied to an agent manually.
+- No command currently renders prompts from detected repository state.
 
 ### Verification evidence
 
-- Evidence
+- `.concoct/prompts/roadmap/human-roadmap-input.md`
+- `.concoct/prompts/handoffs/`
 
 ### Related capabilities
 
-- Related capability
+- `CAP-001` defines the artifact and role contract coordinated by these prompts.
 
----
+## CAP-003 — Reusable project workflow template
 
-## Deprecated capabilities
+- Status: `limited`
+- Audience: `project maintainers`
+- Added by: `baseline inventory`
+- Archive: `none — initial inventory`
+- Documentation: `README.md`, `templates/AGENTS.md`
 
-Use this section for capabilities that still exist but should no longer be used for new work.
+### Capability
 
-### CAP-XXX — <Deprecated capability title>
+Concoct supplies a reusable filesystem template for equipping another repository with canonical project instructions, Concoct workflow state, roadmap and capability schemas, role personas, transition prompts, and coding-agent adapters.
 
-- Status: `deprecated`
-- Deprecated by: `<ROADMAP-ID>`
-- Replacement: `CAP-YYY | none`
-- Planned removal: `<roadmap-id | unknown>`
+### User value
 
-#### Current behavior
+Project maintainers can reuse a consistent, agent-neutral workflow contract rather than assembling planning, review, and archival guidance from scratch.
 
-Describe what still works.
+### Inputs
 
-#### Deprecation reason
+The contents of `templates/` and project-specific edits to the installed placeholders and guidance.
 
-Explain why the capability is deprecated.
+### Outputs and effects
 
-#### Migration guidance
+The template defines conventional root files and tool adapters alongside Concoct-owned material under `.concoct/`, including `current/`, `archive/`, personas, prompts, a roadmap, and a capability ledger.
 
-Explain what users should use instead.
+### Limitations
 
-#### Limitations
+- The current bootstrap executable cannot install the template from its repository location because it resolves `templates/` and `personas/` relative to `cmd/concoct/`, where those directories do not exist.
+- Several template references use older persona names that do not match the persona files currently shipped.
+- The API, code, and user writer persona files are empty.
+- Installed templates require project-specific customization before they constitute finished project guidance.
 
-Describe any additional restrictions during deprecation.
+### Verification evidence
 
-## Removed capabilities
+- `templates/` contains the root adapters, `.concoct/` artifact hierarchy, persona files, prompts, and placeholder current-task files.
+- `bash -n cmd/concoct/concoct` passes.
+- An end-to-end invocation of `cmd/concoct/concoct` fails before project creation with `templates directory not found at: .../cmd/concoct/templates`.
 
-Use this section only when the project keeps removed capabilities here for traceability.
+### Related capabilities
 
-Otherwise, preserve removal history in the archive and changelog.
+- `CAP-001` is the workflow contract represented by the template.
+- `CAP-004` describes the tool adapters included in the template.
 
-### CAP-XXX — <Removed capability title>
+## CAP-004 — Agent-neutral tool adapters
 
-- Status: `removed`
-- Removed by: `<ROADMAP-ID>`
-- Archive: `.concoct/archive/YYYY-MM-DD-roadmap-id-short-task-name/`
-- Replacement: `CAP-YYY | none`
+- Status: `active`
+- Audience: `developers using coding agents`
+- Added by: `baseline inventory`
+- Archive: `none — initial inventory`
+- Documentation: `doc/multi-agent-workflow.md`
 
-#### Former behavior
+### Capability
 
-Describe what the capability previously enabled.
+Concoct provides thin adapters that direct Codex, Claude Code, GitHub Copilot, Aider, and tools that read a generic conventions file toward the same repository-owned instructions and active task context.
 
-#### Removal reason
+### User value
 
-Explain why it was removed.
+Teams can use the file-based workflow with multiple coding-agent tools without maintaining a separate durable rule set for each tool.
 
-#### Migration or replacement
+### Inputs
 
-Describe the supported alternative.
+The adapter appropriate to the user's tool and the canonical files installed in the project.
 
-## Capability relationships
+### Outputs and effects
 
-Use this section only when relationships are important enough to summarize globally.
+The adapters point tools to `AGENTS.md`, `.concoct/current/task-plan.md`, `.concoct/current/notes.md`, and role guidance where supported.
 
-Examples:
+### Limitations
 
-```text
-CAP-001 provides the project initialization required before CAP-004 can manage active workflow transitions.
+- Adapters provide instructions only; they do not launch agents or enforce workflow transitions.
+- Some GitHub prompt templates refer to older persona filenames and need manual correction before those particular prompts can be used as written.
 
-CAP-006 extends CAP-003 by supporting review-remediation mode.
-```
+### Verification evidence
 
-Avoid duplicating relationships already clear in individual capability entries.
+- `templates/.codex/skills/concoct/SKILL.md`
+- `templates/CLAUDE.md`
+- `templates/.github/copilot-instructions.md` and `templates/.github/prompts/`
+- `templates/.aider.conf.yml`
+- `templates/CONVENTIONS.md`
+
+### Related capabilities
+
+- `CAP-001` provides the canonical workflow and artifact rules referenced by the adapters.
+- `CAP-003` distributes the adapters with the project template.
 
 ## Known capability gaps
 
-Use this section sparingly.
-
-A capability gap describes an important absence in the current product baseline.
-
-It is not automatically a roadmap commitment.
-
-### <Gap title>
-
-- Current limitation:
-- Affected users:
-- Related capabilities:
-- Related roadmap item:
-- Notes:
-
-If the gap is accepted as future work, reference the relevant roadmap item.
-
-Do not use this section as an unrestricted backlog.
-
-## Archivist update workflow
-
-When approved work is archived:
-
-1. Read `AGENTS.md`.
-2. Read `.concoct/personas/archivist.md`.
-3. Read the completed task plan, notes, and reviews.
-4. Inspect the delivered implementation and verification evidence.
-5. Determine whether capabilities were:
-   - added;
-   - updated;
-   - removed;
-   - unaffected.
-6. Update only the capability truth supported by the accepted outcome.
-7. Preserve stable capability identifiers.
-8. Add archive and roadmap traceability.
-9. Confirm future or incomplete work is not presented as current capability.
-10. Update the `updated` date.
-
-## Capability impact examples
-
-### Add
-
-```yaml
-capability-impact:
-  type: add
-  ids:
-    - CAP-004
-```
-
-Create a new capability entry based on delivered behavior.
-
-### Update
-
-```yaml
-capability-impact:
-  type: update
-  ids:
-    - CAP-002
-```
-
-Revise the existing capability to reflect the new accepted behavior.
-
-Preserve the identifier.
-
-### Remove
-
-```yaml
-capability-impact:
-  type: remove
-  ids:
-    - CAP-003
-```
-
-Remove the behavior from current capability truth while preserving required traceability.
-
-### None
-
-```yaml
-capability-impact:
-  type: none
-  rationale: Internal refactor with no observable product behavior change.
-```
-
-Do not make a capability edit merely to show that archival occurred.
-
-## Capability review checklist
-
-Before completing an update, confirm:
-
-- every listed capability exists now;
-- capability descriptions use present tense;
-- planned behavior is excluded;
-- claims are observable and evidence-based;
-- stable identifiers are preserved;
-- limitations are meaningful and current;
-- capability impact matches the approved implementation;
-- roadmap and archive references are valid;
-- deprecated and removed capabilities are handled deliberately;
-- current truth is not mixed with task history;
-- the `updated` date is current.
+- The initializer does not currently complete an end-to-end project bootstrap from its checked-in location.
+- The planned `init`, `status`, `roadmap`, `plan`, `code`, `review`, and `archive` command contracts and state transitions are not implemented as a CLI.
+- Prompt rendering, direct agent execution, workflow diagnostics, recovery, history reporting, upgrades, and overlays remain roadmap intent rather than current capabilities.
+- Repository documentation and parts of the template retain stale paths and persona names from earlier layouts.
+- There are no automated tests in the repository.
