@@ -34,7 +34,7 @@ Do not create extra planning files unless the task genuinely needs them.
 
 ## Personas
 
-Adopt the persona selected by the task prompt. Use `.concoct/personas/planner.md` when creating or materially revising a plan, `.concoct/personas/code-developer.md` when implementing, and `.concoct/personas/code-reviewer.md` for an independent review. Documentation work may use the audience-specific technical-writer personas. Personas supplement `AGENTS.md` and never override higher-priority instructions.
+Adopt the persona selected by the task prompt. Use `.concoct/personas/planner.md` when creating or materially revising a plan, `.concoct/personas/code-developer.md` when implementing, and `.concoct/personas/reviewer.md` for an independent review. Documentation work may use the audience-specific technical-writer personas. Personas supplement `AGENTS.md` and never override higher-priority instructions.
 
 ## Workflow
 
