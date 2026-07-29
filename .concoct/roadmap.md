@@ -57,10 +57,11 @@ concoct plan <roadmap-id>
 
 ## CON-003 — Define the command contract and workflow state machine
 
-- Status: `planned`
+- Status: `delivered`
 - Priority: `critical`
 - Depends on: None
 - Capability impact: defines the intended CLI behavior
+- Archive: `.concoct/archive/2026-07-29-CON-003-command-contract-state-machine/`
 
 ### Outcome
 
@@ -124,8 +125,8 @@ For each command, document:
 Create:
 
 ```text
-.concoct/docs/command-reference.md
-.concoct/docs/state-machine.md
+doc/command-reference.md
+doc/state-machine.md
 ```
 
 ### Acceptance criteria
@@ -142,7 +143,7 @@ Create:
 
 - Status: `planned`
 - Priority: `high`
-- Depends on: CON-002
+- Depends on: None
 - Capability impact: adds the capability ledger
 
 ### Outcome
@@ -186,7 +187,7 @@ It is not:
 
 - Status: `planned`
 - Priority: `critical`
-- Depends on: CON-001, CON-002, CON-003
+- Depends on: CON-003
 - Capability impact: adds the executable CLI foundation
 
 ### Outcome
@@ -764,8 +765,6 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 Implement in this order:
 
 ```text
-CON-001  Canonical project structure
-CON-002  Artifact model
 CON-003  Command contract and state machine
 CON-004  Capability ledger
 CON-005  Go CLI foundation and status
@@ -784,13 +783,3 @@ CON-012  Archaeology and reporting
 CON-013  Client project upgrades
 CON-014  Client overlays
 ```
-
-## First task
-
-The recommended first active task is:
-
-```text
-concoct plan CON-001
-```
-
-CON-001 should establish the authoritative repository structure before implementation work depends on unstable paths.

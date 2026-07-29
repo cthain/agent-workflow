@@ -18,11 +18,12 @@ This initial inventory predates Concoct's normal reviewed-task archive history. 
 - Audience: `developers and coding agents`
 - Added by: `baseline inventory`
 - Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
+- Updated by: `.concoct/archive/2026-07-29-CON-003-command-contract-state-machine/`
 - Documentation: `.codex/skills/concoct/SKILL.md`, `doc/workflow.md`
 
 ### Capability
 
-Concoct provides a Markdown-based workflow contract for moving substantial software work through product ownership, task planning, implementation, independent review, and archival. The contract defines canonical roadmap, capability, active-task, review, persona, prompt, and archive artifacts, their ownership, and the expected handoffs between roles.
+Concoct provides a Markdown-based workflow contract for moving substantial software work through product ownership, task planning, implementation, independent review, and archival. The contract defines canonical roadmap, capability, active-task, review, persona, prompt, and archive artifacts, their ownership, and the expected handoffs between roles. It also provides a normative reference for the initial command surface and an artifact-backed state machine covering valid transitions, remediation, blocked-review recovery, invalid evidence, and transactional archival.
 
 ### User value
 
@@ -46,6 +47,9 @@ The workflow produces and maintains human-readable roadmap, task-plan, notes, se
 - `.codex/skills/concoct/SKILL.md` defines the canonical artifacts, role workflows, state discipline, review outcomes, and archive process.
 - `.concoct/personas/product-owner.md`, `task-planner.md`, `developer.md`, `reviewer.md`, and `archivist.md` provide role-specific operating guidance.
 - `.concoct/roadmap.md` and `.concoct/current/` demonstrate the living artifact layout in this repository.
+- `doc/command-reference.md` defines the complete normative contract for the seven initial commands.
+- `doc/state-machine.md` defines workflow state from observable artifacts and specifies transitions, review recovery, invalid states, and archive atomicity.
+- `.concoct/archive/2026-07-29-CON-003-command-contract-state-machine/review-02.md` records approval of the command and state-machine contract.
 
 ### Related capabilities
 
