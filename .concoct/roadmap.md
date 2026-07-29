@@ -668,7 +668,7 @@ concoct capability <capability-id>
 
 - Status: `candidate`
 - Priority: `medium`
-- Depends on: CON-005
+- Depends on: CON-005, CON-014
 - Capability impact: adds safe lifecycle upgrades for Concoct-enabled projects
 
 ### Outcome
@@ -714,6 +714,51 @@ Concoct installs durable workflow files into client repositories. As that instal
 
 ---
 
+## CON-014 — Add explicit, optional client overlays
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-005, CON-006
+- Capability impact: adds a supported customization layer for client-specific workflow guidance
+
+### Outcome
+
+Allow a Concoct-enabled project to explicitly opt into project-specific overlays that extend or refine Concoct's reusable instructions, skills, prompts, and personas without turning those customizations into changes to the agent-neutral base templates.
+
+### Rationale
+
+Concoct's shared workflow contract must remain reusable and portable, while client projects need durable guidance for their own domain, organization, and working practices. A first-class overlay boundary lets clients specialize the installed workflow without forking the base contract or making ordinary local edits indistinguishable from supported customization.
+
+### Requirements
+
+- Keep overlays optional; projects without an overlay retain the standard Concoct behavior.
+- Require overlays to be explicitly selected or declared rather than inferred from incidental files.
+- Support client-specific instructions, skills, and prompts, plus augmentation of base personas.
+- Define deterministic composition and precedence so humans and agents can inspect the effective guidance and understand its origin.
+- Preserve the agent-neutral base contract and keep overlay content distinct from Concoct-owned templates and workflow state.
+- Validate overlay references and incompatible customizations with clear, actionable errors.
+- Ensure generated or rendered role guidance consistently includes applicable overlays without requiring a specific agent integration.
+- Make the overlay boundary available to lifecycle operations so upgrades can preserve client-owned customization without treating it as an ambiguous edit to the base installation.
+
+### Product decisions before planning
+
+- Decide whether a project may compose multiple overlays or selects exactly one.
+- Define whether overlays are project-local only or may also come from reusable external packages, and how their identity is recorded durably.
+- Define which customization types may replace base guidance and which may only augment it.
+- Define whether overlays apply during initialization, to existing enabled projects, or both.
+
+### Acceptance criteria
+
+- A project can use Concoct with no overlay and receive the standard installed and rendered workflow contract.
+- A project can explicitly enable an overlay containing each supported customization type.
+- Applicable client instructions, skills, prompts, and persona augmentations appear in the effective workflow guidance with deterministic precedence.
+- A user can identify which effective guidance came from the base contract and which came from an overlay.
+- Missing, malformed, or incompatible overlays fail clearly without partially changing project workflow state.
+- Overlay behavior remains portable across the prompt-only workflow and does not require a direct agent execution adapter.
+- Upgrade planning can distinguish and preserve declared overlay content from locally modified base files.
+
+---
+
 ## Recommended implementation order
 
 Implement in this order:
@@ -737,6 +782,7 @@ CON-010  Direct agent execution
 CON-011  Diagnostics and recovery
 CON-012  Archaeology and reporting
 CON-013  Client project upgrades
+CON-014  Client overlays
 ```
 
 ## First task
