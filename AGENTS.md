@@ -8,12 +8,12 @@ The primary product contract is the set of files installed into generated projec
 
 ## Canonical structure
 
-Long-lived conventional project files remain at the repository root, including `AGENTS.md`, `README.md`, `LICENSE`, and `concoct`.
+Long-lived conventional project files remain at the repository root, including `AGENTS.md`, `README.md`, and `LICENSE`.
 
 Concoct's source content lives in root-level directories:
 
-- `current/` and `archive/` contain this repository's task artifacts.
-- `docs/`, `prompts/`, `personas/`, and `skills/` contain reusable workflow material.
+- Concoct is managed by Concoct and its workflow/task artifacts live in the `.concoct/` directory.
+- `cmd/`, `doc/`, and `templates/` contain reusable workflow material.
 - `templates/` contains the exact filesystem structure copied into generated projects.
 
 Generated projects place Concoct-owned state and personas under `.concoct/`. Conventional files and tool adapters such as `AGENTS.md`, `.codex/`, and `.github/` remain at the generated project root.
@@ -40,10 +40,10 @@ For substantial tasks, read `current/task-plan.md`, `current/notes.md`, and the 
 
 Before finishing changes to templates or initialization:
 
-1. Run `bash -n concoct`.
-2. Run `./concoct` against a temporary parent directory.
+1. Run `bash -n cmd/concoct/concoct`.
+2. Run `./cmd/concoct/concoct` against a temporary parent directory.
 3. Confirm dotfiles, nested templates, personas, and planning directories were copied.
 4. Confirm the generated project is a Git repository and contains its bootstrap prompt.
 5. Run `git diff --check` and search for stale branding or paths.
 
-Preserve executable permissions on `concoct`. Never initialize or commit generated test projects inside this repository.
+Preserve executable permissions on `cmd/concoct/concoct`. Never initialize or commit generated test projects inside this repository.
