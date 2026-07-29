@@ -10,14 +10,14 @@ updated: 2026-07-29
 
 This file is the canonical human-readable record of what Concoct can do now. It describes observable behavior evidenced by the repository, not planned behavior from the roadmap.
 
-This initial inventory predates Concoct's normal reviewed-task archive history. Its entries therefore cite repository evidence directly and have no delivery archive or roadmap attribution.
+This initial inventory predates Concoct's normal reviewed-task archive history. Its entries cite repository evidence directly. A historical override archive preserves the stale pre-workflow task and the inventory findings, but does not constitute an approving review or roadmap delivery.
 
 ## CAP-001 — Durable file-based workflow contract
 
 - Status: `active`
 - Audience: `developers and coding agents`
 - Added by: `baseline inventory`
-- Archive: `none — initial inventory`
+- Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
 - Documentation: `.codex/skills/concoct/SKILL.md`, `doc/workflow.md`
 
 ### Capability
@@ -58,7 +58,7 @@ The workflow produces and maintains human-readable roadmap, task-plan, notes, se
 - Status: `active`
 - Audience: `developers and coding agents`
 - Added by: `baseline inventory`
-- Archive: `none — initial inventory`
+- Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
 - Documentation: `.concoct/prompts/README.md`
 
 ### Capability
@@ -96,7 +96,7 @@ Each prompt instructs an agent which persona and artifacts to read, which artifa
 - Status: `limited`
 - Audience: `project maintainers`
 - Added by: `baseline inventory`
-- Archive: `none — initial inventory`
+- Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
 - Documentation: `README.md`, `templates/AGENTS.md`
 
 ### Capability
@@ -138,7 +138,7 @@ The template defines conventional root files and tool adapters alongside Concoct
 - Status: `active`
 - Audience: `developers using coding agents`
 - Added by: `baseline inventory`
-- Archive: `none — initial inventory`
+- Archive: `.concoct/archive/2026-07-29-legacy-hitl-restructuring/` — baseline evidence; no approving review
 - Documentation: `doc/multi-agent-workflow.md`
 
 ### Capability
