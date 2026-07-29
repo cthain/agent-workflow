@@ -1,26 +1,28 @@
 # Concoct Workflow
 
-Concoct turns ideas into implementation-ready plans that any capable coding agent can execute.
+`Concoct` turns ideas into implementation-ready plans that any capable coding agent can execute.
 
 ## The loop
 
 ```text
 Idea
   ↓
-Planner turns the idea into task artifacts
+Product Owner adds the idea to the product roadmap
   ↓
-Implementer reads canonical instructions and task artifacts
+Planner turns the product roadmap into task artifacts
   ↓
-Implementer changes the code
+Developer implements tasks
   ↓
 Reviewer checks the result
   ↓
 Archivist records the outcome
   ↓
-Everybody's eatin' big time
+Writers document the project
+  ↓
+Eatin' big time
 ```
 
-In short: `idea → Chappie concocts the plan → agents cook → eatin’ big time`.
+In short: `idea → concoct → eatin’ big time`.
 
 Concoct's source assets live in this repository's root-level directories. Projects initialized by Concoct keep their task state and personas under `.concoct/`, with `AGENTS.md` and tool-required adapters at the project root.
 
@@ -62,7 +64,7 @@ These describe the current task and durable task context.
 ### Archive files
 
 ```text
-.concoct/archive/YYYY-MM-DD-short-task-name/
+.concoct/archive/YYYY-MM-DD-roadmap-id-short-task-name/
   task-plan.md
   notes.md
   summary.md
