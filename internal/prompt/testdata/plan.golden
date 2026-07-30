@@ -5,6 +5,13 @@
 - Mode: `task-planning`
 - Roadmap item: `APP-002`
 
+## Accepted capability prerequisites
+
+- None declared.
+
+
+Identity and accepted status were validated structurally. The Task Planner must inspect each referenced capability record and decide whether its documented limitations are compatible with the selected outcome.
+
 ## Exact inputs to read
 
 - `.concoct/capabilities.md`

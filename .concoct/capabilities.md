@@ -386,6 +386,82 @@ recoverable without requiring a hosting provider or remote.
 - `CAP-006` supplies deterministic role prompts, now including archival and
   Git-aware transition guidance.
 
+## CAP-008 — Validated active task planning
+
+- Status: `active`
+- Audience: `developers and coding agents`
+- Added by: `.concoct/archive/2026-07-30-CON-007-active-task-planning/`
+- Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`
+
+### Capability
+
+Concoct can validate one selected planned roadmap item against its unresolved
+roadmap dependencies and declared accepted capability prerequisites before
+starting a Task Planner session. It supplies deterministic prerequisite,
+limitation, and archive-provenance context while preserving the Task Planner's
+responsibility for semantic compatibility and implementation-ready artifacts.
+
+### User value
+
+Humans and coding agents can begin planning with explicit evidence that the
+selected roadmap work is structurally eligible, without silently accepting
+missing or inactive capabilities, overwriting active work, or mistaking prompt
+rendering for a completed planning transition.
+
+### Inputs
+
+- `concoct plan <roadmap-id>` selects exactly one parseable item whose status is
+  `planned` and whose outstanding roadmap dependencies are satisfied.
+- Every declared capability prerequisite must resolve uniquely to an `active`
+  record in `.concoct/capabilities.md`.
+- Documented capability limitations and conventional archive-summary
+  provenance are included for Task Planner readiness judgment.
+- Existing active artifacts, ambiguous placeholders, reviews, and unsafe Git
+  boundaries remain conflicts rather than overwrite targets.
+
+### Outputs and effects
+
+- Ineligible, malformed, missing, duplicate, or inactive prerequisite evidence
+  fails with item- and capability-specific recovery guidance before Git branch
+  creation or prompt output.
+- Eligible planning renders deterministic Task Planner context and, in Git
+  repositories, preserves the established deterministic task-branch boundary.
+- The Task Planner may create absent artifacts or replace only recognized empty
+  placeholders, validate the plan and notes as a pair, and activate only the
+  selected roadmap item.
+- Valid completed artifacts preserve roadmap identity, capability impact, and
+  exact Git metadata; `concoct status` then reports `planned` and recommends
+  `concoct code`.
+
+### Limitations
+
+- The CLI does not decide whether documented capability limitations are
+  semantically compatible with product intent; that remains Task Planner
+  judgment.
+- Prompt rendering does not author a plan, mutate role-owned artifacts, or by
+  itself establish the `planned` state.
+- Capability parsing intentionally follows the checked-in Markdown heading and
+  status conventions; schema changes must update the parser and tests.
+
+### Verification evidence
+
+- `internal/workflow/workflow_test.go` covers prerequisite parsing and accepted,
+  missing, inactive, duplicate, malformed, and limitation-bearing records.
+- CLI and Git tests verify prerequisite failures occur before branch creation
+  and preserve existing collision, dirty-worktree, detached-HEAD, and rollback
+  protections.
+- Prompt tests and golden output cover deterministic prerequisite, limitation,
+  and archive-provenance context.
+- `.concoct/archive/2026-07-30-CON-007-active-task-planning/review-02.md`
+  records approval after remediation of planning-diagnostic context.
+
+### Related capabilities
+
+- `CAP-001` defines the durable workflow and state contract.
+- `CAP-005` supplies executable project discovery and workflow validation.
+- `CAP-006` supplies deterministic Task Planner prompt rendering.
+- `CAP-007` supplies the optional Git task-isolation and integration lifecycle.
+
 ## Known capability gaps
 
 - Role commands render prompts and establish Git planning/integration

@@ -101,6 +101,43 @@ func TestPlanCreatesDeterministicTaskBranchAndRefusesCollision(t *testing.T) {
 	}
 }
 
+func TestPlanRejectsCapabilityPrerequisiteBeforeBranchCreation(t *testing.T) {
+	parent := t.TempDir()
+	if err := project.Initialize(parent, "demo", &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Join(parent, "demo")
+	runGit(t, root, "config", "user.email", "test@example.com")
+	runGit(t, root, "config", "user.name", "Test")
+	road := filepath.Join(root, ".concoct/roadmap.md")
+	f, err := os.OpenFile(road, os.O_APPEND|os.O_WRONLY, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = f.WriteString("\n## APP-404 — Missing Capability\n\n- Status: `planned`\n- Depends on: `none`\n- Capability prerequisites: CAP-404\n")
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, root, "add", "-A")
+	runGit(t, root, "commit", "-qm", "initial")
+	trunk := gitOutput(t, root, "branch", "--show-current")
+	head := gitOutput(t, root, "rev-parse", "HEAD")
+	t.Setenv("CONCOCT_CALLER_DIR", root)
+	err = Run([]string{"plan", "APP-404"}, &bytes.Buffer{}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "CAP-404 is missing") {
+		t.Fatalf("error = %v", err)
+	}
+	if gitOutput(t, root, "branch", "--show-current") != trunk || gitOutput(t, root, "rev-parse", "HEAD") != head {
+		t.Fatal("prerequisite failure changed Git boundary")
+	}
+	if strings.Contains(gitOutput(t, root, "branch", "--format=%(refname:short)"), "concoct/app-404") {
+		t.Fatal("prerequisite failure created task branch")
+	}
+}
+
 func runGit(t *testing.T, root string, args ...string) { t.Helper(); _ = gitOutput(t, root, args...) }
 func gitOutput(t *testing.T, root string, args ...string) string {
 	t.Helper()

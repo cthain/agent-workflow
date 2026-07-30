@@ -169,6 +169,53 @@ func TestDiscoverableStatusDoesNotMutate(t *testing.T) {
 	}
 }
 
+func TestInspectPlanEligibilityValidatesCapabilityPrerequisites(t *testing.T) {
+	capability := func(status string) string {
+		return fmt.Sprintf("---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Capabilities\n## CAP-001 — Foundation\n- Status: `%s`\n- Archive: `.concoct/archive/2026-01-01-CAP-001-foundation/`\n### Limitations\n\n- Planner must inspect this limitation.\n", status)
+	}
+	setup := func(t *testing.T, prerequisite, capabilities string) string {
+		root := fixture(t, "", "", "")
+		write(t, filepath.Join(root, ".concoct/roadmap.md"), fmt.Sprintf("---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Roadmap\n## APP-001 — Demo\n- Status: `planned`\n- Depends on: `none`\n- Capability prerequisites: %s\n", prerequisite))
+		write(t, filepath.Join(root, ".concoct/capabilities.md"), capabilities)
+		return root
+	}
+
+	t.Run("accepted with limitation context", func(t *testing.T) {
+		got, err := InspectPlanEligibility(setup(t, "CAP-001", capability("active")), "APP-001")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got.Prerequisites) != 1 || !strings.Contains(got.Prerequisites[0].Limitations, "inspect this limitation") || len(got.Prerequisites[0].Archives) != 1 {
+			t.Fatalf("eligibility = %#v", got)
+		}
+	})
+
+	tests := []struct {
+		name, prerequisite, capabilities string
+		want                             []string
+	}{
+		{"missing", "CAP-002", capability("active"), []string{"CAP-002 is missing"}},
+		{"inactive", "CAP-001", capability("limited"), []string{"status limited"}},
+		{"duplicate declaration", "CAP-001, CAP-001", capability("active"), []string{"duplicate capability prerequisite CAP-001"}},
+		{"malformed declaration", "cap-one", capability("active"), []string{"malformed Capability prerequisite cap-one"}},
+		{"duplicate record", "CAP-001", capability("active") + "\n## CAP-001 — Again\n- Status: `active`\n", []string{"roadmap item APP-001", "duplicate capability CAP-001", "correct .concoct/capabilities.md before retrying planning"}},
+		{"missing record status", "CAP-001", strings.Replace(capability("active"), "- Status: `active`\n", "", 1), []string{"roadmap item APP-001", "CAP-001 missing Status", "correct .concoct/capabilities.md before retrying planning"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := InspectPlanEligibility(setup(t, tt.prerequisite, tt.capabilities), "APP-001")
+			if err == nil {
+				t.Fatal("expected eligibility error")
+			}
+			for _, want := range tt.want {
+				if !strings.Contains(err.Error(), want) {
+					t.Fatalf("error = %v, want fragment %q", err, want)
+				}
+			}
+		})
+	}
+}
+
 func fixture(t *testing.T, status, reviewStatus, extra string) string {
 	t.Helper()
 	root := t.TempDir()

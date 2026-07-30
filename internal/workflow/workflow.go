@@ -102,8 +102,26 @@ type reviewMeta struct {
 	Persona string `yaml:"persona"`
 }
 type roadItem struct {
-	Status       string
-	Dependencies []string
+	Status        string
+	Dependencies  []string
+	Prerequisites []string
+}
+
+type capabilityRecord struct {
+	Status      string
+	Limitations string
+	Archives    []string
+}
+
+// PlanEligibility is the validated, deterministic context for one roadmap
+// item entering Task Planner work.
+type PlanEligibility struct {
+	Prerequisites []PlanPrerequisite
+}
+
+type PlanPrerequisite struct {
+	ID, Status, Limitations string
+	Archives                []string
 }
 
 // PromptContext exposes validated, read-only workflow evidence needed by role
@@ -215,31 +233,62 @@ func InspectPromptContext(root string) (PromptContext, error) {
 // ValidatePlanItem verifies command-specific eligibility after Detect has
 // established a ready repository with no conflicting active task.
 func ValidatePlanItem(root, id string) error {
+	_, err := InspectPlanEligibility(root, id)
+	return err
+}
+
+// InspectPlanEligibility validates roadmap ordering and accepted capability
+// truth while retaining limitations and provenance for planner judgment.
+func InspectPlanEligibility(root, id string) (PlanEligibility, error) {
 	if !regexp.MustCompile(`^[A-Z][A-Z0-9-]*-[0-9]+$`).MatchString(id) {
-		return fmt.Errorf("invalid roadmap id %q; expected a stable identifier such as CON-006", id)
+		return PlanEligibility{}, fmt.Errorf("invalid roadmap id %q; expected a stable identifier such as CON-006", id)
 	}
 	data, err := os.ReadFile(filepath.Join(root, ".concoct", "roadmap.md"))
 	if err != nil {
-		return err
+		return PlanEligibility{}, err
 	}
 	items, diagnostics := parseRoadmap(string(data))
 	if len(diagnostics) > 0 {
-		return fmt.Errorf("invalid roadmap: %s", strings.Join(diagnostics, "; "))
+		return PlanEligibility{}, fmt.Errorf("invalid roadmap: %s", strings.Join(diagnostics, "; "))
 	}
 	item, ok := items[id]
 	if !ok {
-		return fmt.Errorf("roadmap item %s does not exist", id)
+		return PlanEligibility{}, fmt.Errorf("roadmap item %s does not exist", id)
 	}
 	if item.Status != "planned" {
-		return fmt.Errorf("roadmap item %s is not eligible for planning (status %s); run concoct roadmap", id, item.Status)
+		return PlanEligibility{}, fmt.Errorf("roadmap item %s is not eligible for planning (status %s); run concoct roadmap", id, item.Status)
 	}
 	for _, dependency := range item.Dependencies {
 		dep, ok := items[dependency]
 		if !ok || dep.Status != "delivered" {
-			return fmt.Errorf("roadmap item %s has unsatisfied dependency %s; deliver it or record an explicit roadmap resolution", id, dependency)
+			return PlanEligibility{}, fmt.Errorf("roadmap item %s has unsatisfied dependency %s; deliver it or record an explicit roadmap resolution", id, dependency)
 		}
 	}
-	return nil
+	capData, err := os.ReadFile(filepath.Join(root, ".concoct", "capabilities.md"))
+	if err != nil {
+		return PlanEligibility{}, err
+	}
+	records, capDiagnostics := parseCapabilities(string(capData))
+	if len(capDiagnostics) > 0 {
+		return PlanEligibility{}, fmt.Errorf("roadmap item %s cannot validate capability prerequisites: %s; correct .concoct/capabilities.md before retrying planning", id, strings.Join(capDiagnostics, "; "))
+	}
+	result := PlanEligibility{}
+	seen := map[string]bool{}
+	for _, prerequisite := range item.Prerequisites {
+		if seen[prerequisite] {
+			return PlanEligibility{}, fmt.Errorf("roadmap item %s declares duplicate capability prerequisite %s; remove the duplicate in .concoct/roadmap.md", id, prerequisite)
+		}
+		seen[prerequisite] = true
+		record, ok := records[prerequisite]
+		if !ok {
+			return PlanEligibility{}, fmt.Errorf("roadmap item %s capability prerequisite %s is missing from accepted capability truth; reconcile .concoct/capabilities.md or run concoct roadmap", id, prerequisite)
+		}
+		if record.Status != "active" {
+			return PlanEligibility{}, fmt.Errorf("roadmap item %s capability prerequisite %s is not accepted active capability truth (status %s); reconcile the prerequisite before planning", id, prerequisite, record.Status)
+		}
+		result.Prerequisites = append(result.Prerequisites, PlanPrerequisite{prerequisite, record.Status, record.Limitations, record.Archives})
+	}
+	return result, nil
 }
 
 func PlanItemTitle(root, id string) (string, error) {
@@ -630,6 +679,19 @@ func parseRoadmap(s string) (map[string]roadItem, []string) {
 				}
 			}
 		}
+		prereqRE := regexp.MustCompile(`(?m)^- Capability prerequisites:\s*(.+?)\s*$`)
+		if pm := prereqRE.FindStringSubmatch(section); len(pm) == 2 {
+			value := strings.Trim(strings.TrimSpace(pm[1]), "`")
+			if value != "" && strings.ToLower(value) != "none" {
+				for _, prerequisite := range strings.Split(value, ",") {
+					prerequisite = strings.TrimSpace(strings.Trim(prerequisite, "`"))
+					if !regexp.MustCompile(`^CAP-[0-9]+$`).MatchString(prerequisite) {
+						d = append(d, ".concoct/roadmap.md: "+id+" has malformed Capability prerequisite "+prerequisite)
+					}
+					item.Prerequisites = append(item.Prerequisites, prerequisite)
+				}
+			}
+		}
 		items[id] = item
 	}
 	active := 0
@@ -646,6 +708,51 @@ func parseRoadmap(s string) (map[string]roadItem, []string) {
 		d = append(d, ".concoct/roadmap.md: multiple active roadmap items")
 	}
 	return items, d
+}
+
+var capabilityHeading = regexp.MustCompile(`(?m)^## (CAP-[0-9]+)\s+—`)
+
+func parseCapabilities(s string) (map[string]capabilityRecord, []string) {
+	matches := capabilityHeading.FindAllStringSubmatchIndex(s, -1)
+	records := map[string]capabilityRecord{}
+	var diagnostics []string
+	for i, match := range matches {
+		id := s[match[2]:match[3]]
+		end := len(s)
+		if i+1 < len(matches) {
+			end = matches[i+1][0]
+		}
+		section := s[match[0]:end]
+		if _, exists := records[id]; exists {
+			diagnostics = append(diagnostics, ".concoct/capabilities.md: duplicate capability "+id)
+			continue
+		}
+		statusMatch := regexp.MustCompile("(?m)^- Status: `?([^`\\n]+)`?\\s*$").FindStringSubmatch(section)
+		if len(statusMatch) != 2 {
+			diagnostics = append(diagnostics, ".concoct/capabilities.md: "+id+" missing Status")
+			continue
+		}
+		record := capabilityRecord{Status: strings.TrimSpace(statusMatch[1])}
+		if limitations := regexp.MustCompile(`(?ms)^### Limitations\s*\n(.*?)(?:\n### |\z)`).FindStringSubmatch(section); len(limitations) == 2 {
+			record.Limitations = strings.TrimSpace(limitations[1])
+		}
+		archiveRE := regexp.MustCompile(`\.concoct/archive/[^/` + "`" + `\s]+`)
+		for _, archive := range archiveRE.FindAllString(section, -1) {
+			record.Archives = append(record.Archives, archive+"/summary.md")
+		}
+		sort.Strings(record.Archives)
+		if len(record.Archives) > 1 {
+			compacted := record.Archives[:1]
+			for _, archive := range record.Archives[1:] {
+				if archive != compacted[len(compacted)-1] {
+					compacted = append(compacted, archive)
+				}
+			}
+			record.Archives = compacted
+		}
+		records[id] = record
+	}
+	return records, diagnostics
 }
 func readPopulated(path string) ([]byte, bool, error) {
 	data, err := os.ReadFile(path)

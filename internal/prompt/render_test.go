@@ -84,6 +84,27 @@ func TestRenderRejectsWrongStateAndUnsatisfiedDependency(t *testing.T) {
 	}
 }
 
+func TestPlanIncludesAcceptedPrerequisiteContextAndArchive(t *testing.T) {
+	root := fixture(t, "", "", "")
+	road := filepath.Join(root, ".concoct/roadmap.md")
+	data, err := os.ReadFile(road)
+	if err != nil {
+		t.Fatal(err)
+	}
+	write(t, road, strings.Replace(string(data), "- Depends on: APP-001", "- Depends on: APP-001\n- Capability prerequisites: CAP-001", 1))
+	write(t, filepath.Join(root, ".concoct/capabilities.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Capabilities\n## CAP-001 — Delivered\n- Status: `active`\n- Archive: `.concoct/archive/2026-01-01-CAP-001-delivered/`\n### Limitations\n\n- Limited example.\n")
+	write(t, filepath.Join(root, ".concoct/archive/2026-01-01-CAP-001-delivered/summary.md"), "# Summary\n")
+	got, err := Render(root, Request{Command: "plan", RoadmapID: "APP-002"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"`CAP-001` — `active` accepted truth; documented limitations", ".concoct/archive/2026-01-01-CAP-001-delivered/summary.md", "Task Planner must inspect"} {
+		if !strings.Contains(string(got), want) {
+			t.Fatalf("prompt missing %q:\n%s", want, got)
+		}
+	}
+}
+
 func fixture(t *testing.T, status, reviewStatus, extra string) string {
 	t.Helper()
 	root := t.TempDir()

@@ -76,7 +76,8 @@ concoct plan <roadmap-id>
 
 ## CON-007 — Implement active task planning
 
-- Status: `planned`
+- Status: `active`
+- Archive: `.concoct/archive/2026-07-30-CON-007-active-task-planning/` — accepted and archived on the task branch; delivery pending `concoct integrate`
 - Priority: `high`
 - Depends on: None
 - Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-007

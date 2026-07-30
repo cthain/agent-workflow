@@ -246,6 +246,12 @@ Render the Task Planner handoff that turns one eligible roadmap item into an imp
 - Relevant archive summaries and artifacts.
 - Relevant source, tests, and documentation needed to validate roadmap assumptions.
 
+The command structurally validates that every declared capability prerequisite
+resolves uniquely to an active capability record. The rendered prompt names the
+accepted prerequisites, includes their available archive-summary provenance,
+and tells the Task Planner to assess documented limitations for semantic
+compatibility with the selected outcome.
+
 ### Selected persona
 
 Task Planner.
@@ -275,8 +281,9 @@ A Task Planner prompt containing the selected roadmap item, repository evidence 
 
 - Missing, extra, or syntactically invalid roadmap ID.
 - Unknown, delivered, cancelled, deferred, blocked, already active, or otherwise ineligible item.
-- Unsatisfied delivery dependency or missing/incompatible capability
-  prerequisite not explicitly handled.
+- Unsatisfied delivery dependency; malformed, duplicate, missing, or inactive
+  capability prerequisite; or a documented capability limitation the Task
+  Planner determines is incompatible with the outcome.
 - Existing populated active task or current reviews.
 - Malformed capability, roadmap, archive, or placeholder evidence.
 - Planner outcome is not implementation-ready.

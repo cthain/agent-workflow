@@ -311,16 +311,18 @@ When asked to plan a roadmap item:
 3. Read `.concoct/capabilities.md`.
 4. Read `.concoct/roadmap.md`.
 5. Locate and validate the requested roadmap item.
-6. Confirm that no conflicting active task exists.
-7. Inspect relevant code, tests, documentation, and archive history.
-8. Compare roadmap assumptions with repository reality.
-9. Identify unresolved product decisions.
-10. Determine whether the item is ready for planning.
-11. Create or update `task-plan.md`.
-12. Create or update `notes.md`.
-13. Confirm capability impact.
-14. Define acceptance criteria and verification.
-15. Summarize the plan and any unresolved blockers.
+6. Inspect every accepted capability prerequisite and determine whether its
+   documented limitations are compatible with the selected outcome.
+7. Confirm that no conflicting active task exists.
+8. Inspect relevant code, tests, documentation, and archive history.
+9. Compare roadmap assumptions with repository reality.
+10. Identify unresolved product decisions.
+11. Determine whether the item is ready for planning.
+12. Create or update `task-plan.md`.
+13. Create or update `notes.md`.
+14. Confirm capability impact.
+15. Define acceptance criteria and verification.
+16. Summarize the plan and any unresolved blockers.
 
 ## Readiness test
 

@@ -141,6 +141,14 @@ Directly launching or supervising an agent is outside this initial contract. A g
 
 `roadmap` may make an item eligible for planning, but because no active task exists, the detected state remains `ready`. `plan` may be invoked directly from `ready` when the named item is already eligible; a separate `roadmap` invocation is not required.
 
+Planning eligibility treats outstanding roadmap dependencies and accepted
+capability prerequisites as distinct evidence. Every declared capability
+prerequisite must resolve uniquely to an `active` capability record before the
+planning prompt is rendered. Structural validation does not decide whether a
+documented capability limitation is compatible with the desired outcome; that
+readiness judgment remains with the Task Planner using the limitation and
+archive context named by the prompt.
+
 ### Remediation loop
 
 The repeatable loop is:

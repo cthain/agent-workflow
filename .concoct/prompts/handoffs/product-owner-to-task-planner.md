@@ -17,9 +17,11 @@ Roadmap item:
 Confirm:
 1. The item exists and is ready for planning.
 2. Dependencies are satisfied or explicitly handled.
-3. No conflicting active task exists.
-4. Repository reality supports the roadmap assumptions.
-5. No unresolved product decision must return to the Product Owner.
+3. Every declared capability prerequisite is accepted, and its documented
+   limitations are compatible with the selected outcome.
+4. No conflicting active task exists.
+5. Repository reality supports the roadmap assumptions.
+6. No unresolved product decision must return to the Product Owner.
 
 When ready, create:
 - `.concoct/current/task-plan.md`

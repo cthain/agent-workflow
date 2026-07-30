@@ -32,6 +32,16 @@ func Render(root string, request Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	var eligibility workflow.PlanEligibility
+	if request.Command == "plan" {
+		eligibility, err = workflow.InspectPlanEligibility(root, request.RoadmapID)
+		if err != nil {
+			return nil, err
+		}
+		for _, prerequisite := range eligibility.Prerequisites {
+			spec.reads = append(spec.reads, prerequisite.Archives...)
+		}
+	}
 	archives, err := archiveInputs(root, request.RoadmapID, spec.reads)
 	if err != nil {
 		return nil, err
@@ -58,6 +68,21 @@ func Render(root string, request Request) ([]byte, error) {
 	}
 	if request.Command == "review" {
 		fmt.Fprintf(&b, "- Next review artifact: `%s`\n", context.NextReview)
+	}
+	if request.Command == "plan" {
+		fmt.Fprintln(&b, "\n## Accepted capability prerequisites")
+		if len(eligibility.Prerequisites) == 0 {
+			fmt.Fprintln(&b, "\n- None declared.")
+		}
+		for _, prerequisite := range eligibility.Prerequisites {
+			fmt.Fprintf(&b, "\n- `%s` — `%s` accepted truth", prerequisite.ID, prerequisite.Status)
+			if prerequisite.Limitations == "" {
+				fmt.Fprint(&b, "; no documented limitations")
+			} else {
+				fmt.Fprint(&b, "; documented limitations must be inspected for compatibility")
+			}
+		}
+		fmt.Fprintln(&b, "\n\nIdentity and accepted status were validated structurally. The Task Planner must inspect each referenced capability record and decide whether its documented limitations are compatible with the selected outcome.")
 	}
 	fmt.Fprintln(&b, "\n## Exact inputs to read")
 	for _, path := range spec.reads {
