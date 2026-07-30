@@ -36,7 +36,7 @@ Validate repository assumptions before writing, stay within the selected persona
 
 ## Recommended next transition
 
-Git-backed task → `concoct integrate`; non-Git task → `concoct roadmap`
+Git-backed task → `concoct integrate`; non-Git task → `concoct next`
 
 ## Canonical handoff instructions
 

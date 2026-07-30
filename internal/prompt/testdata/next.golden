@@ -1,0 +1,53 @@
+# Concoct Next prompt
+
+- Persona: `product-owner`
+- Workflow state: `ready`
+- Mode: `next-action-recommendation`
+
+## Authoritative next-action evidence
+
+### Roadmap items
+
+- `APP-001` — Delivered; status `delivered`; priority `none`; structurally plannable: `false`; dependencies: none; capability prerequisites: none; blocker: roadmap item APP-001 is not eligible for planning (status delivered); run concoct roadmap
+- `APP-002` — Demo; status `planned`; priority `none`; structurally plannable: `true`; dependencies: APP-001; capability prerequisites: none
+
+### Accepted capability truth
+
+- None recorded.
+
+
+### Supported work origins
+
+- human product input
+- roadmap maintenance and reconciliation
+
+Ordering is deterministic presentation only. The CLI has not selected work; priority and semantic limitation compatibility remain Product Owner judgment.
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/personas/product-owner.md`
+- `.concoct/roadmap.md`
+- `AGENTS.md`
+
+## Authorized updates
+
+- `none (read-only recommendation)`
+
+The `concoct next` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Recommend exactly one supported next action from authoritative evidence without selecting work or mutating workflow artifacts.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+one exact follow-up command when applicable: `concoct plan <roadmap-id>` or `concoct roadmap`; otherwise name the blocker or report no actionable recorded work
+
+## Canonical handoff instructions
+
+# Next action handoff

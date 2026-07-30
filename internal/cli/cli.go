@@ -17,6 +17,7 @@ import (
 const usage = `Usage:
   concoct init <project>
   concoct status
+  concoct next [--output <path>]
   concoct roadmap [--output <path>]
   concoct plan <roadmap-id> [--output <path>]
   concoct code [--output <path>]
@@ -61,7 +62,7 @@ func Run(args []string, stdout, stderr io.Writer) error {
 			return report.OperationalError
 		}
 		return nil
-	case "roadmap", "plan", "code", "review", "archive":
+	case "next", "roadmap", "plan", "code", "review", "archive":
 		return runPrompt(args, stdout, stderr)
 	case "integrate":
 		mode := ""

@@ -90,7 +90,7 @@ Creation is transactional from the user's perspective. On failure, report the ex
 
 ### Prompt produced
 
-Human-readable bootstrap guidance that identifies the `ready` state and recommends product-roadmap intake. No workflow persona is selected.
+Human-readable bootstrap guidance that identifies the `ready` state and recommends `concoct next`. No workflow persona is selected.
 
 ### Resulting state
 
@@ -109,7 +109,7 @@ Every error identifies whether a partial target exists and how to inspect or saf
 
 ### Recommended next commands
 
-- `concoct roadmap` for new product input.
+- `concoct next` for one evidence-backed Product Owner recommendation.
 - `concoct status` to inspect the initialized project.
 
 ## `concoct status`
@@ -161,13 +161,44 @@ Invalid state is a successful diagnostic outcome only when the report can reliab
 
 ### Recommended next commands
 
-- `ready`: `concoct roadmap` or `concoct plan <roadmap-id>` when an eligible item is known.
+- `ready`: `concoct next`.
 - `planned` or `implementation-in-progress`: `concoct code`.
 - `implementation-complete`: `concoct review`.
 - `review-changes-requested`: `concoct code`.
 - `review-approved`: `concoct archive`.
 - `review-blocked`: responsible-role or human handoff from the review.
 - `invalid`: the reported non-destructive recovery action, then `concoct status`.
+
+## `concoct next`
+
+### Purpose
+
+Render a deterministic, read-only Product Owner prompt that recommends one
+valid next project action without selecting work or mutating lifecycle evidence.
+
+### Valid starting states
+
+`ready` only. Invalid canonical evidence is diagnosed and no prompt is rendered.
+
+### Evidence and output
+
+The command validates and presents roadmap items, priority, dependencies,
+capability prerequisites and limitations, relevant archive provenance, and the
+currently supported human-product-input and roadmap-maintenance origins in
+stable order. Existing planning eligibility remains authoritative. The prompt
+requires exactly one outcome: plan an eligible item, perform supported roadmap
+or product intake, resolve a named blocker or inconsistency, or report no
+actionable recorded work.
+
+The command writes deterministic bytes to stdout or a create-only `--output`
+path and changes no workflow artifact or Git state. Presentation order is not
+automatic selection; Product Owner judgment supplies the recommendation.
+
+### Recommended next commands
+
+- `concoct plan <roadmap-id>` for one selected eligible item.
+- `concoct roadmap` for supported input or reconciliation.
+- The named recovery action for a blocker, or no command when no work exists.
 
 ## `concoct roadmap`
 
@@ -485,10 +516,9 @@ Before current reset, every failure preserves `.concoct/current/`. A failure aft
 ### Recommended next commands
 
 - Git-backed: `concoct integrate`.
-- Non-Git: `concoct roadmap` or `concoct plan <roadmap-id>`.
+- Non-Git: `concoct next`.
 
-- `concoct roadmap` to reassess future direction.
-- `concoct plan <roadmap-id>` when another item is already eligible.
+- `concoct next` to obtain the next evidence-backed recommendation.
 - `concoct status` to confirm the returned `ready` state.
 
 ## Commands outside the initial surface

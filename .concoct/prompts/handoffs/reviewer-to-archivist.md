@@ -41,5 +41,5 @@ Do not approve work, alter source code, rewrite history, or copy planned capabil
 Report archive path, delivered roadmap item, approving review, capability changes, reset state, follow-ups, and manual actions.
 
 Recommend `concoct integrate` for a Git-backed task. For a non-Git task,
-recommend `concoct roadmap` or `concoct plan <roadmap-id>`.
+recommend `concoct next`.
 ```

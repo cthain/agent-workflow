@@ -33,6 +33,7 @@ func Render(root string, request Request) ([]byte, error) {
 		return nil, err
 	}
 	var eligibility workflow.PlanEligibility
+	var nextEvidence workflow.NextActionEvidence
 	if request.Command == "plan" {
 		eligibility, err = workflow.InspectPlanEligibility(root, request.RoadmapID)
 		if err != nil {
@@ -40,6 +41,19 @@ func Render(root string, request Request) ([]byte, error) {
 		}
 		for _, prerequisite := range eligibility.Prerequisites {
 			spec.reads = append(spec.reads, prerequisite.Archives...)
+		}
+	} else if request.Command == "next" {
+		nextEvidence, err = workflow.InspectNextActionEvidence(root)
+		if err != nil {
+			return nil, err
+		}
+		for _, capability := range nextEvidence.Capabilities {
+			spec.reads = append(spec.reads, capability.Archives...)
+		}
+		for _, item := range nextEvidence.RoadmapItems {
+			if item.Archive != "" {
+				spec.reads = append(spec.reads, item.Archive)
+			}
 		}
 	}
 	archives, err := archiveInputs(root, request.RoadmapID, spec.reads)
@@ -84,6 +98,35 @@ func Render(root string, request Request) ([]byte, error) {
 		}
 		fmt.Fprintln(&b, "\n\nIdentity and accepted status were validated structurally. The Task Planner must inspect each referenced capability record and decide whether its documented limitations are compatible with the selected outcome.")
 	}
+	if request.Command == "next" {
+		fmt.Fprintln(&b, "\n## Authoritative next-action evidence")
+		fmt.Fprintln(&b, "\n### Roadmap items")
+		if len(nextEvidence.RoadmapItems) == 0 {
+			fmt.Fprintln(&b, "\n- None recorded.")
+		}
+		for _, item := range nextEvidence.RoadmapItems {
+			fmt.Fprintf(&b, "\n- `%s` — %s; status `%s`; priority `%s`; structurally plannable: `%t`", item.ID, item.Title, item.Status, valueOrNone(item.Priority), item.Eligible)
+			fmt.Fprintf(&b, "; dependencies: %s; capability prerequisites: %s", listOrNone(item.Dependencies), listOrNone(item.Prerequisites))
+			if item.Blocker != "" {
+				fmt.Fprintf(&b, "; blocker: %s", item.Blocker)
+			}
+			if item.Archive != "" {
+				fmt.Fprintf(&b, "; archive provenance: `%s`", item.Archive)
+			}
+		}
+		fmt.Fprintln(&b, "\n\n### Accepted capability truth")
+		if len(nextEvidence.Capabilities) == 0 {
+			fmt.Fprintln(&b, "\n- None recorded.")
+		}
+		for _, capability := range nextEvidence.Capabilities {
+			fmt.Fprintf(&b, "\n- `%s` — status `%s`; limitations: `%s`; archive provenance: %s", capability.ID, capability.Status, valueOrNone(capability.Limitations), listOrNone(capability.Archives))
+		}
+		fmt.Fprintln(&b, "\n\n### Supported work origins")
+		for _, origin := range nextEvidence.SupportedOrigins {
+			fmt.Fprintf(&b, "\n- %s", origin)
+		}
+		fmt.Fprintln(&b, "\n\nOrdering is deterministic presentation only. The CLI has not selected work; priority and semantic limitation compatibility remain Product Owner judgment.")
+	}
 	fmt.Fprintln(&b, "\n## Exact inputs to read")
 	for _, path := range spec.reads {
 		fmt.Fprintf(&b, "\n- `%s`", path)
@@ -107,6 +150,11 @@ func Render(root string, request Request) ([]byte, error) {
 func selectRole(root string, request Request, c workflow.PromptContext) (roleSpec, error) {
 	base := []string{"AGENTS.md", ".concoct/capabilities.md"}
 	switch request.Command {
+	case "next":
+		if c.Report.State != workflow.Ready {
+			return roleSpec{}, wrongState(request.Command, c.Report.State, "ready")
+		}
+		return roleSpec{"product-owner", ".concoct/prompts/roadmap/next-action-recommendation.md", "next-action-recommendation", "Recommend exactly one supported next action from authoritative evidence without selecting work or mutating workflow artifacts.", "one exact follow-up command when applicable: `concoct plan <roadmap-id>` or `concoct roadmap`; otherwise name the blocker or report no actionable recorded work", append(base, ".concoct/personas/product-owner.md", ".concoct/roadmap.md"), []string{"none (read-only recommendation)"}}, nil
 	case "roadmap":
 		if c.Report.State != workflow.Ready {
 			return roleSpec{}, wrongState(request.Command, c.Report.State, "ready")
@@ -156,10 +204,23 @@ func selectRole(root string, request Request, c workflow.PromptContext) (roleSpe
 		}
 		reads := append(base, ".concoct/personas/archivist.md", ".concoct/roadmap.md", ".concoct/current/task-plan.md", ".concoct/current/notes.md", "complete implementation and Git evidence")
 		reads = append(reads, c.ReviewFiles...)
-		return roleSpec{"archivist", ".concoct/prompts/handoffs/reviewer-to-archivist.md", "archival", "Archive approved evidence and reconcile capability and pending roadmap evidence. For a Git-backed task, commit the archive on the task branch, record git.archive-commit and git.status archived, and do not clear current state or mark delivery.", "Git-backed task → `concoct integrate`; non-Git task → `concoct roadmap`", reads, []string{".concoct/archive/<dated-task>/", ".concoct/capabilities.md", ".concoct/roadmap.md (pending delivery evidence only)", ".concoct/current/task-plan.md", ".concoct/current/notes.md"}}, nil
+		return roleSpec{"archivist", ".concoct/prompts/handoffs/reviewer-to-archivist.md", "archival", "Archive approved evidence and reconcile capability and pending roadmap evidence. For a Git-backed task, commit the archive on the task branch, record git.archive-commit and git.status archived, and do not clear current state or mark delivery.", "Git-backed task → `concoct integrate`; non-Git task → `concoct next`", reads, []string{".concoct/archive/<dated-task>/", ".concoct/capabilities.md", ".concoct/roadmap.md (pending delivery evidence only)", ".concoct/current/task-plan.md", ".concoct/current/notes.md"}}, nil
 	default:
 		return roleSpec{}, fmt.Errorf("unsupported prompt command %q", request.Command)
 	}
+}
+
+func valueOrNone(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "none"
+	}
+	return strings.TrimSpace(value)
+}
+func listOrNone(values []string) string {
+	if len(values) == 0 {
+		return "none"
+	}
+	return strings.Join(values, ", ")
 }
 
 func wrongState(command string, got workflow.State, want string) error {

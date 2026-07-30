@@ -30,7 +30,5 @@ Do not create an active task plan.
 Summarize roadmap changes, capability implications, new candidates, items ready for planning, unresolved decisions, and the next command.
 
 Recommend:
-`concoct plan <roadmap-id>`
-or
-`concoct roadmap`
+`concoct next`
 ```

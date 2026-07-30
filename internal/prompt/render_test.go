@@ -13,6 +13,7 @@ func TestRenderRolesAndModesDeterministically(t *testing.T) {
 	tests := []struct {
 		name, command, status, review, extra, want, golden string
 	}{
+		{"next", "next", "", "", "", "Mode: `next-action-recommendation`", "next.golden"},
 		{"roadmap", "roadmap", "", "", "", "Persona: `product-owner`", "roadmap.golden"},
 		{"plan", "plan", "", "", "", "Persona: `task-planner`", "plan.golden"},
 		{"code initial", "code", "planned", "", "", "Mode: `implementation`", "code-initial.golden"},
@@ -72,6 +73,9 @@ func TestRenderRolesAndModesDeterministically(t *testing.T) {
 
 func TestRenderRejectsWrongStateAndUnsatisfiedDependency(t *testing.T) {
 	root := fixture(t, "planned", "", "")
+	if _, err := Render(root, Request{Command: "next"}); err == nil || !strings.Contains(err.Error(), "not valid") {
+		t.Fatalf("next wrong-state error = %v", err)
+	}
 	if _, err := Render(root, Request{Command: "roadmap"}); err == nil || !strings.Contains(err.Error(), "not valid") {
 		t.Fatalf("wrong-state error = %v", err)
 	}
@@ -82,6 +86,134 @@ func TestRenderRejectsWrongStateAndUnsatisfiedDependency(t *testing.T) {
 	if _, err := Render(root, Request{Command: "plan", RoadmapID: "APP-002"}); err == nil || !strings.Contains(err.Error(), "unsatisfied dependency") {
 		t.Fatalf("dependency error = %v", err)
 	}
+}
+
+func TestNextCoversNoActionableWork(t *testing.T) {
+	root := fixture(t, "", "", "")
+	write(t, filepath.Join(root, ".concoct/roadmap.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Roadmap\n")
+	got := assertNextGolden(t, root, "next-no-work.golden")
+	for _, want := range []string{"### Roadmap items\n\n- None recorded.", "report no actionable recorded work"} {
+		if !strings.Contains(string(got), want) {
+			t.Fatalf("prompt missing %q:\n%s", want, got)
+		}
+	}
+}
+
+func TestNextFullOutputOutcomeEvidence(t *testing.T) {
+	tests := []struct {
+		name, golden string
+		prepare      func(*testing.T, string)
+	}{
+		{
+			name:   "supported product input",
+			golden: "next-product-input.golden",
+			prepare: func(t *testing.T, root string) {
+				roadmap := filepath.Join(root, ".concoct/roadmap.md")
+				data, err := os.ReadFile(roadmap)
+				if err != nil {
+					t.Fatal(err)
+				}
+				write(t, roadmap, strings.Replace(string(data), "- Status: `planned`", "- Status: `candidate`", 1))
+			},
+		},
+		{
+			name:   "roadmap reconciliation",
+			golden: "next-reconciliation.golden",
+			prepare: func(t *testing.T, root string) {
+				write(t, filepath.Join(root, ".concoct/roadmap.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Roadmap\n## APP-001 — Delivered\n- Status: `delivered`\n- Depends on: `none`\n")
+			},
+		},
+		{
+			name:   "specific blocker",
+			golden: "next-blocker.golden",
+			prepare: func(t *testing.T, root string) {
+				roadmap := filepath.Join(root, ".concoct/roadmap.md")
+				data, err := os.ReadFile(roadmap)
+				if err != nil {
+					t.Fatal(err)
+				}
+				write(t, roadmap, strings.Replace(string(data), "- Depends on: APP-001", "- Depends on: APP-999", 1))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := fixture(t, "", "", "")
+			tt.prepare(t, root)
+			assertNextGolden(t, root, tt.golden)
+		})
+	}
+}
+
+func TestNextRejectsInvalidCanonicalEvidenceWithoutMutation(t *testing.T) {
+	root := fixture(t, "", "", "")
+	roadmap := filepath.Join(root, ".concoct/roadmap.md")
+	data, err := os.ReadFile(roadmap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	write(t, roadmap, strings.Replace(string(data), "- Status: `planned`", "- Status: `mystery`", 1))
+	before, err := os.ReadFile(roadmap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Render(root, Request{Command: "next"}); err == nil || !strings.Contains(err.Error(), "invalid workflow state") {
+		t.Fatalf("invalid evidence error = %v", err)
+	}
+	after, err := os.ReadFile(roadmap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("next mutated invalid canonical evidence")
+	}
+}
+
+func assertNextGolden(t *testing.T, root, name string) []byte {
+	t.Helper()
+	before := workflowFiles(t, root)
+	first, err := Render(root, Request{Command: "next"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := Render(root, Request{Command: "next"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(first, second) {
+		t.Fatal("next output is not deterministic")
+	}
+	if after := workflowFiles(t, root); !bytes.Equal(before, after) {
+		t.Fatal("next mutated workflow artifacts")
+	}
+	path := filepath.Join("testdata", name)
+	if os.Getenv("UPDATE_GOLDEN") == "1" {
+		if err := os.WriteFile(path, first, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(first, want) {
+		t.Fatalf("rendered prompt differs from %s\n--- want ---\n%s\n--- got ---\n%s", path, want, first)
+	}
+	return first
+}
+
+func workflowFiles(t *testing.T, root string) []byte {
+	t.Helper()
+	var snapshot bytes.Buffer
+	for _, rel := range []string{".concoct/roadmap.md", ".concoct/capabilities.md", ".concoct/current/task-plan.md", ".concoct/current/notes.md"} {
+		data, err := os.ReadFile(filepath.Join(root, rel))
+		if err != nil {
+			t.Fatal(err)
+		}
+		snapshot.WriteString(rel)
+		snapshot.Write(data)
+	}
+	return snapshot.Bytes()
 }
 
 func TestPlanIncludesAcceptedPrerequisiteContextAndArchive(t *testing.T) {
@@ -117,7 +249,7 @@ func fixture(t *testing.T, status, reviewStatus, extra string) string {
 	write(t, filepath.Join(root, ".concoct/capabilities.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Capabilities\n")
 	assets := map[string]string{
 		".concoct/personas/product-owner.md": "# Product Owner", ".concoct/personas/task-planner.md": "# Task Planner", ".concoct/personas/developer.md": "# Developer", ".concoct/personas/reviewer.md": "# Reviewer", ".concoct/personas/archivist.md": "# Archivist",
-		".concoct/prompts/roadmap/human-roadmap-input.md": "# Product Owner handoff", ".concoct/prompts/handoffs/product-owner-to-task-planner.md": "# Planner handoff", ".concoct/prompts/handoffs/task-planner-to-developer.md": "# Developer handoff", ".concoct/prompts/handoffs/reviewer-to-developer.md": "# Remediation handoff", ".concoct/prompts/handoffs/developer-to-reviewer.md": "# Reviewer handoff", ".concoct/prompts/handoffs/reviewer-to-archivist.md": "# Archivist handoff",
+		".concoct/prompts/roadmap/human-roadmap-input.md": "# Product Owner handoff", ".concoct/prompts/roadmap/next-action-recommendation.md": "# Next action handoff", ".concoct/prompts/handoffs/product-owner-to-task-planner.md": "# Planner handoff", ".concoct/prompts/handoffs/task-planner-to-developer.md": "# Developer handoff", ".concoct/prompts/handoffs/reviewer-to-developer.md": "# Remediation handoff", ".concoct/prompts/handoffs/developer-to-reviewer.md": "# Reviewer handoff", ".concoct/prompts/handoffs/reviewer-to-archivist.md": "# Archivist handoff",
 	}
 	for path, body := range assets {
 		write(t, filepath.Join(root, path), body)

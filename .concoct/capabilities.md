@@ -462,6 +462,78 @@ rendering for a completed planning transition.
 - `CAP-006` supplies deterministic Task Planner prompt rendering.
 - `CAP-007` supplies the optional Git task-isolation and integration lifecycle.
 
+## CAP-009 — Evidence-backed next-action recommendation
+
+- Status: `active`
+- Audience: `project maintainers, developers, and coding agents`
+- Added by: `.concoct/archive/2026-07-30-CON-028-recommend-next-project-action/`
+- Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`
+
+### Capability
+
+Concoct provides `concoct next` as the single command recommended from valid
+ready state. It renders a deterministic Product Owner prompt from validated
+roadmap, capability, dependency, prerequisite, archive, and supported-origin
+evidence so a human or agent can recommend one valid next action without the
+CLI selecting work, creating a task, or changing lifecycle evidence.
+
+### User value
+
+Users returning to a ready project receive one unambiguous decision step that
+distinguishes structurally plannable work, supported product or roadmap intake,
+specific blockers, and the absence of actionable recorded work before routing
+to an existing workflow command.
+
+### Inputs
+
+- `concoct next` runs from the project root or a nested directory only when the
+  repository is in structurally valid `ready` state.
+- It reads canonical roadmap and accepted capability records, shared planning
+  eligibility, dependency and prerequisite evidence, relevant archive
+  provenance, and the bounded set of currently supported work origins.
+- Optional `--output <path>` uses the existing create-only prompt-output
+  contract.
+
+### Outputs and effects
+
+- The command emits byte-deterministic Product Owner guidance to stdout or a
+  newly created output file.
+- Guidance requires exactly one evidence-backed outcome: plan an eligible item,
+  perform supported product or roadmap work, resolve a named blocker or
+  inconsistency, or report that no actionable work is recorded.
+- Ready-state status, initialization, bootstrap, and successful integration
+  consistently recommend `concoct next`.
+- Rendering is read-only and does not rank, select, activate, persist, or
+  otherwise mutate workflow work.
+
+### Limitations
+
+- Semantic prioritization and recommendation remain Product Owner judgment;
+  deterministic presentation order is not automated selection.
+- Only roadmap planning and human product input or roadmap maintenance are
+  supported work origins until other origin contracts are accepted.
+- Invalid or contradictory canonical evidence is rejected rather than
+  normalized into a recommendation.
+
+### Verification evidence
+
+- `internal/workflow/workflow_test.go` covers shared eligibility and blocker
+  evidence.
+- `internal/prompt/render_test.go` and the `next*.golden` fixtures cover every
+  supported recommendation outcome, determinism, invalid evidence, and
+  non-mutation.
+- CLI, initialization, and integration tests cover state restriction, nested
+  discovery, create-only output safety, and the sole ready-state recommendation.
+- `.concoct/archive/2026-07-30-CON-028-recommend-next-project-action/review-02.md`
+  records approval after the missing outcome and transition coverage was added.
+
+### Related capabilities
+
+- `CAP-001` defines the durable role and artifact contract.
+- `CAP-005` supplies project discovery and validated workflow state.
+- `CAP-006` supplies deterministic role-aware prompt rendering.
+- `CAP-008` supplies the shared structural planning-eligibility authority.
+
 ## Known capability gaps
 
 - Role commands render prompts and establish Git planning/integration

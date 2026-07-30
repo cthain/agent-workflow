@@ -83,6 +83,7 @@ Render a complete role prompt without launching an agent or changing workflow
 state:
 
 ```bash
+concoct next
 concoct roadmap
 concoct plan APP-001
 concoct code
@@ -90,6 +91,11 @@ concoct review
 concoct archive
 concoct integrate
 ```
+
+In `ready` state, `status` recommends only `concoct next`. That read-only
+Product Owner prompt assembles validated roadmap, capability, dependency,
+prerequisite, archive, and supported-origin evidence so one next action can be
+recommended before `roadmap` or `plan` is chosen.
 
 Each command validates the repository state and writes deterministic prompt
 bytes to standard output. Use `--output <path>` to create a new prompt file

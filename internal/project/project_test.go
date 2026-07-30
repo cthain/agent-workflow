@@ -60,6 +60,16 @@ func TestInitializeEndToEnd(t *testing.T) {
 	if !strings.Contains(out.String(), "staged (no commit created)") {
 		t.Fatalf("output omitted staging decision: %s", out.String())
 	}
+	if strings.Count(out.String(), "Next: concoct next") != 1 || strings.Contains(out.String(), "concoct roadmap or concoct plan") {
+		t.Fatalf("initialization output does not recommend exactly concoct next: %s", out.String())
+	}
+	bootstrap, err := os.ReadFile(filepath.Join(root, ".concoct/current/bootstrap-prompt.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(bootstrap), "Recommended next command: `concoct next`") != 1 || strings.Contains(string(bootstrap), "concoct roadmap or concoct plan") {
+		t.Fatalf("bootstrap does not recommend exactly concoct next: %s", bootstrap)
+	}
 }
 
 func TestInitializeRefusesExistingAndUnsafeTargets(t *testing.T) {

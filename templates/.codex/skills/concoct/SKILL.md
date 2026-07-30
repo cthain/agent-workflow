@@ -400,13 +400,7 @@ Do not rewrite historical artifacts.
 Then recommend:
 
 ```text
-concoct roadmap
-```
-
-or:
-
-```text
-concoct plan <roadmap-id>
+concoct next
 ```
 
 ## Workflow state discipline

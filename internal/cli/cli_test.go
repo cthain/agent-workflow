@@ -26,11 +26,11 @@ func TestPromptStdoutAndFileOutputAreIdenticalAndNonDestructive(t *testing.T) {
 
 	before := workflowSnapshot(t, root)
 	var stdout, stderr bytes.Buffer
-	if err := Run([]string{"roadmap"}, &stdout, &stderr); err != nil {
+	if err := Run([]string{"next"}, &stdout, &stderr); err != nil {
 		t.Fatalf("render stdout: %v (%s)", err, stderr.String())
 	}
-	output := filepath.Join(t.TempDir(), "roadmap-prompt.md")
-	if err := Run([]string{"roadmap", "--output", output}, &bytes.Buffer{}, &stderr); err != nil {
+	output := filepath.Join(t.TempDir(), "next-prompt.md")
+	if err := Run([]string{"next", "--output", output}, &bytes.Buffer{}, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	fileBytes, err := os.ReadFile(output)
@@ -43,7 +43,7 @@ func TestPromptStdoutAndFileOutputAreIdenticalAndNonDestructive(t *testing.T) {
 	if before != workflowSnapshot(t, root) {
 		t.Fatal("prompt rendering changed workflow artifacts")
 	}
-	if err := Run([]string{"roadmap", "--output", output}, &bytes.Buffer{}, &stderr); err == nil || !strings.Contains(err.Error(), "without overwriting") {
+	if err := Run([]string{"next", "--output", output}, &bytes.Buffer{}, &stderr); err == nil || !strings.Contains(err.Error(), "without overwriting") {
 		t.Fatalf("existing output error = %v", err)
 	}
 	if got, _ := os.ReadFile(output); !bytes.Equal(got, fileBytes) {
@@ -52,7 +52,7 @@ func TestPromptStdoutAndFileOutputAreIdenticalAndNonDestructive(t *testing.T) {
 }
 
 func TestPromptArgumentValidation(t *testing.T) {
-	tests := [][]string{{"plan"}, {"code", "extra"}, {"review", "--output"}, {"roadmap", "--output", "a", "--output", "b"}}
+	tests := [][]string{{"plan"}, {"next", "extra"}, {"code", "extra"}, {"review", "--output"}, {"roadmap", "--output", "a", "--output", "b"}}
 	for _, args := range tests {
 		if err := Run(args, &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
 			t.Errorf("Run(%v) succeeded", args)

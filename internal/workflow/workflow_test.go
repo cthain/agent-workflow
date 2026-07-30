@@ -169,6 +169,21 @@ func TestDiscoverableStatusDoesNotMutate(t *testing.T) {
 	}
 }
 
+func TestInspectNextActionEvidenceUsesPlanEligibility(t *testing.T) {
+	root := fixture(t, "", "", "")
+	write(t, filepath.Join(root, ".concoct/roadmap.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Roadmap\n## APP-001 — Eligible\n- Status: `planned`\n- Priority: `high`\n- Depends on: `none`\n## APP-002 — Blocked\n- Status: `planned`\n- Priority: `critical`\n- Depends on: APP-003\n")
+	evidence, err := InspectNextActionEvidence(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(evidence.RoadmapItems) != 2 || !evidence.RoadmapItems[0].Eligible || evidence.RoadmapItems[1].Eligible || !strings.Contains(evidence.RoadmapItems[1].Blocker, "unsatisfied dependency APP-003") {
+		t.Fatalf("evidence = %#v", evidence)
+	}
+	if evidence.RoadmapItems[0].Priority != "high" || len(evidence.SupportedOrigins) != 2 {
+		t.Fatalf("evidence = %#v", evidence)
+	}
+}
+
 func TestInspectPlanEligibilityValidatesCapabilityPrerequisites(t *testing.T) {
 	capability := func(status string) string {
 		return fmt.Sprintf("---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Capabilities\n## CAP-001 — Foundation\n- Status: `%s`\n- Archive: `.concoct/archive/2026-01-01-CAP-001-foundation/`\n### Limitations\n\n- Planner must inspect this limitation.\n", status)

@@ -102,9 +102,9 @@ type reviewMeta struct {
 	Persona string `yaml:"persona"`
 }
 type roadItem struct {
-	Status        string
-	Dependencies  []string
-	Prerequisites []string
+	Title, Status, Priority, Archive string
+	Dependencies                     []string
+	Prerequisites                    []string
 }
 
 type capabilityRecord struct {
@@ -120,6 +120,25 @@ type PlanEligibility struct {
 }
 
 type PlanPrerequisite struct {
+	ID, Status, Limitations string
+	Archives                []string
+}
+
+// NextActionEvidence is deterministic, validated repository evidence for
+// Product Owner judgment. Eligibility is structural, never a priority choice.
+type NextActionEvidence struct {
+	RoadmapItems     []NextRoadmapItem
+	Capabilities     []NextCapability
+	SupportedOrigins []string
+}
+
+type NextRoadmapItem struct {
+	ID, Title, Status, Priority, Archive, Blocker string
+	Dependencies, Prerequisites                   []string
+	Eligible                                      bool
+}
+
+type NextCapability struct {
 	ID, Status, Limitations string
 	Archives                []string
 }
@@ -291,6 +310,64 @@ func InspectPlanEligibility(root, id string) (PlanEligibility, error) {
 	return result, nil
 }
 
+// InspectNextActionEvidence exposes all authoritative ready-state evidence in
+// stable identifier order while delegating planning eligibility to the same
+// validation used by concoct plan.
+func InspectNextActionEvidence(root string) (NextActionEvidence, error) {
+	r := Detect(root)
+	if r.OperationalError != nil {
+		return NextActionEvidence{}, r.OperationalError
+	}
+	if r.State != Ready {
+		if r.State == Invalid {
+			return NextActionEvidence{}, fmt.Errorf("invalid workflow state: %s", strings.Join(r.Diagnostics, "; "))
+		}
+		return NextActionEvidence{}, fmt.Errorf("concoct next is not valid in state %s; expected ready; run concoct status", r.State)
+	}
+	roadData, err := os.ReadFile(filepath.Join(root, ".concoct", "roadmap.md"))
+	if err != nil {
+		return NextActionEvidence{}, err
+	}
+	items, diagnostics := parseRoadmap(string(roadData))
+	if len(diagnostics) > 0 {
+		return NextActionEvidence{}, fmt.Errorf("invalid roadmap: %s", strings.Join(diagnostics, "; "))
+	}
+	ids := make([]string, 0, len(items))
+	for id := range items {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	evidence := NextActionEvidence{SupportedOrigins: []string{"human product input", "roadmap maintenance and reconciliation"}}
+	for _, id := range ids {
+		item := items[id]
+		next := NextRoadmapItem{ID: id, Title: item.Title, Status: item.Status, Priority: item.Priority, Archive: item.Archive, Dependencies: item.Dependencies, Prerequisites: item.Prerequisites}
+		if _, eligibilityErr := InspectPlanEligibility(root, id); eligibilityErr == nil {
+			next.Eligible = true
+		} else {
+			next.Blocker = eligibilityErr.Error()
+		}
+		evidence.RoadmapItems = append(evidence.RoadmapItems, next)
+	}
+	capData, err := os.ReadFile(filepath.Join(root, ".concoct", "capabilities.md"))
+	if err != nil {
+		return NextActionEvidence{}, err
+	}
+	records, capDiagnostics := parseCapabilities(string(capData))
+	if len(capDiagnostics) > 0 {
+		return NextActionEvidence{}, fmt.Errorf("invalid capabilities: %s", strings.Join(capDiagnostics, "; "))
+	}
+	capIDs := make([]string, 0, len(records))
+	for id := range records {
+		capIDs = append(capIDs, id)
+	}
+	sort.Strings(capIDs)
+	for _, id := range capIDs {
+		record := records[id]
+		evidence.Capabilities = append(evidence.Capabilities, NextCapability{ID: id, Status: record.Status, Limitations: record.Limitations, Archives: record.Archives})
+	}
+	return evidence, nil
+}
+
 func PlanItemTitle(root, id string) (string, error) {
 	b, err := os.ReadFile(filepath.Join(root, ".concoct", "roadmap.md"))
 	if err != nil {
@@ -381,7 +458,7 @@ func Detect(root string) Report {
 			return r
 		}
 		r.State = Ready
-		r.Next = "concoct roadmap or concoct plan <roadmap-id>"
+		r.Next = "concoct next"
 		return r
 	}
 	if taskPop != notesPop {
@@ -669,7 +746,14 @@ func parseRoadmap(s string) (map[string]roadItem, []string) {
 		if _, exists := items[id]; exists {
 			d = append(d, ".concoct/roadmap.md: duplicate item "+id)
 		}
-		item := roadItem{Status: strings.TrimSpace(sm[1])}
+		title := strings.TrimSpace(strings.TrimPrefix(strings.SplitN(section, "\n", 2)[0], "## "+id+" —"))
+		item := roadItem{Title: title, Status: strings.TrimSpace(sm[1])}
+		if pm := regexp.MustCompile("(?m)^- Priority: `?([^`\\n]+)`?\\s*$").FindStringSubmatch(section); len(pm) == 2 {
+			item.Priority = strings.TrimSpace(pm[1])
+		}
+		if am := regexp.MustCompile("(?m)^- Archive:\\s*(`?\\.concoct/archive/[^`\\s]+`?)").FindStringSubmatch(section); len(am) == 2 {
+			item.Archive = strings.TrimSuffix(strings.Trim(am[1], "`"), "/") + "/summary.md"
+		}
 		depRE := regexp.MustCompile(`(?m)^- Depends on:\s*(.+?)\s*$`)
 		if dm := depRE.FindStringSubmatch(section); len(dm) == 2 {
 			value := strings.Trim(strings.TrimSpace(dm[1]), "`")

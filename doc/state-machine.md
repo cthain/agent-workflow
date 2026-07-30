@@ -48,7 +48,7 @@ The states below are mutually exclusive. `invalid` is a detected condition, not 
 | State | Observable evidence | Normal next action |
 | --- | --- | --- |
 | `uninitialized` | The target is absent, or it lacks the required Concoct project contract created by initialization. | `concoct init <project>` |
-| `ready` | The project contract is valid; no populated active task or current review exists; roadmap and capability artifacts are readable and internally consistent. | `concoct roadmap` or `concoct plan <roadmap-id>` |
+| `ready` | The project contract is valid; no populated active task or current review exists; roadmap and capability artifacts are readable and internally consistent. | `concoct next` |
 | `planned` | A valid task plan and notes exist; the plan maps to one eligible roadmap item; task status is `planned`; no review exists. | `concoct code` |
 | `implementation-in-progress` | The active task status is `implementation-in-progress`; required task artifacts are valid; after review, either `remediates-review` names the latest `changes-requested` review or a valid `blocked-review-resolution` names the latest `blocked` review and selects `code`. | `concoct code` to continue or resume |
 | `implementation-complete` | The active task status is `implementation-complete`; required task artifacts are valid; either no review exists, `remediates-review` names the latest `changes-requested` review and notes contain its completed finding dispositions, or a valid `blocked-review-resolution` names the latest `blocked` review and selects `review`. | `concoct review` |
@@ -180,7 +180,7 @@ Resolving a blocker is an explicit handoff under the responsible role. Product O
 ## State-preserving operations
 
 - `status` never changes workflow artifacts.
-- Successful prompt rendering by `roadmap`, `plan`, `code`, `review`, or `archive` never changes workflow state by itself.
+- Successful prompt rendering by `next`, `roadmap`, `plan`, `code`, `review`, or `archive` never changes workflow state by itself.
 - Product Owner work that changes roadmap content but creates no active task leaves state `ready`.
 - A failed validation, prompt rendering, or role precondition check leaves state unchanged.
 - Inspection, blocker routing, and recovery diagnostics are non-mutating unless the responsible role deliberately repairs an owned artifact.

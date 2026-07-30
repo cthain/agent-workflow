@@ -90,7 +90,7 @@ func Initialize(base, target string, out io.Writer) (err error) {
 	if report.State != workflow.Ready {
 		return fmt.Errorf("validate initialized project: expected ready, got %s (%s)", report.State, strings.Join(report.Diagnostics, "; "))
 	}
-	fmt.Fprintf(out, "Concoct project initialized at %s\nState: ready\nGenerated files: staged (no commit created)\nNext: concoct roadmap\nInspect: concoct status\n", target)
+	fmt.Fprintf(out, "Concoct project initialized at %s\nState: ready\nGenerated files: staged (no commit created)\nNext: concoct next\nInspect: concoct status\n", target)
 	return nil
 }
 
@@ -120,7 +120,7 @@ func copyTemplates(target, projectName string) error {
 }
 
 func writeBootstrap(target string) error {
-	content := "# Concoct bootstrap\n\nThis project is in the `ready` state.\n\nDescribe the product idea and run the Product Owner handoff in `.concoct/prompts/roadmap/human-roadmap-input.md`.\n\nRecommended next command: `concoct roadmap`\n"
+	content := "# Concoct bootstrap\n\nThis project is in the `ready` state.\n\nRun the read-only Product Owner recommendation step before selecting work or performing roadmap intake.\n\nRecommended next command: `concoct next`\n"
 	return os.WriteFile(filepath.Join(target, ".concoct", "current", "bootstrap-prompt.md"), []byte(content), 0o644)
 }
 

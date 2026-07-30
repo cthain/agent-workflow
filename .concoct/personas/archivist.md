@@ -441,14 +441,8 @@ At completion, report:
 - follow-up roadmap recommendations;
 - any manual actions still required.
 
-The recommended next command is usually:
+The recommended ready-state command is:
 
 ```text
-concoct roadmap
-```
-
-or:
-
-```text
-concoct plan <roadmap-id>
+concoct next
 ```

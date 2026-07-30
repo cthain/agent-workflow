@@ -7,11 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/cthain/concoct/internal/workflow"
 )
 
 func TestLocalIntegrationAndCleanup(t *testing.T) {
 	root, road, _ := setupArchived(t, false)
-	if err := Run(root, "", &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+	var output bytes.Buffer
+	if err := Run(root, "", &bytes.Buffer{}, &output); err != nil {
 		t.Fatal(err)
 	}
 	if got := git(t, root, "branch", "--show-current"); got != "trunk" {
@@ -26,6 +29,10 @@ func TestLocalIntegrationAndCleanup(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, ".concoct/current/task-plan.md")); !os.IsNotExist(err) {
 		t.Fatal("current task not cleared")
+	}
+	output.WriteString(workflow.Detect(root).String())
+	if strings.Count(output.String(), "Next: concoct next") != 1 || strings.Contains(output.String(), "concoct roadmap or concoct plan") {
+		t.Fatalf("integration output does not recommend exactly concoct next: %s", output.String())
 	}
 }
 

@@ -947,7 +947,8 @@ explicit bug provenance.
 
 ## CON-028 — Recommend the next project action
 
-- Status: `planned`
+- Status: `active`
+- Delivery: pending integration; archived evidence at `.concoct/archive/2026-07-30-CON-028-recommend-next-project-action/`
 - Priority: `high`
 - Depends on: None
 - Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-008
