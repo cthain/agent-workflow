@@ -125,7 +125,12 @@ When adding an item, allocate the next appropriate identifier.
 
 ### Prefer explicit dependencies
 
-Record dependencies when one roadmap item cannot be meaningfully planned or delivered before another.
+Record `Depends on` only when one outstanding roadmap item cannot be
+meaningfully planned or delivered before another outstanding item.
+
+Record enduring reliance on accepted behavior separately as `Capability
+prerequisites`. Delivery provenance belongs in capability and archive records,
+not in the dependency graph.
 
 Do not add dependencies merely because two items are related.
 
@@ -186,7 +191,8 @@ A roadmap item should include:
 
 - Status: `candidate | planned | active | blocked | delivered | deferred | cancelled`
 - Priority: `critical | high | medium | low`
-- Depends on: roadmap identifiers or `none`
+- Depends on: outstanding roadmap identifiers or `none`
+- Capability prerequisites: accepted capability identifiers or `none`
 - Capability impact: concise description
 
 ### Outcome
@@ -240,7 +246,11 @@ State the blocker clearly.
 
 ### `delivered`
 
-Use only after the work has been implemented, reviewed, archived, and reconciled with current capabilities.
+Use only as a transitional delivery marker after the work has been implemented,
+reviewed, archived, and reconciled with current capabilities. During the next
+Product Owner reconciliation, remove the item after all remaining delivery
+dependencies and capability prerequisites have been reconciled. Preserve its
+history through the archive and capability provenance.
 
 ### `deferred`
 
@@ -252,9 +262,9 @@ Explain why it was deferred and what may cause it to be reconsidered.
 
 Use when the work is no longer intended.
 
-Preserve the item and explain why it was cancelled.
-
-Do not delete it merely to clean up the roadmap.
+Preserve the rationale long enough to reconcile references and reserve the
+identifier. Then remove the item from the active roadmap because it is not
+future work. Do not reuse the identifier.
 
 ## Roadmap review workflow
 
@@ -355,7 +365,8 @@ Do not:
 - copy implementation notes into the roadmap;
 - duplicate `capabilities.md`;
 - use the roadmap as a changelog;
-- delete cancelled work to make history look cleaner;
+- remove delivered or cancelled work before reconciling references and
+  preserving provenance or rationale;
 - continuously reorder identifiers;
 - mark work delivered without archive evidence;
 - add speculative ideas without rationale;
@@ -371,7 +382,8 @@ After a roadmap update:
 - dependencies are explicit;
 - planned work is ready for task planning;
 - blocked work names its blocker;
-- deferred and cancelled work preserve rationale;
+- deferred work preserves rationale, and removed cancelled identifiers remain
+  reserved;
 - stable identifiers remain stable;
 - material changes are summarized clearly;
 - unresolved product decisions are called out rather than hidden.

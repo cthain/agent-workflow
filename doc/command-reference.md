@@ -229,7 +229,9 @@ Render the Task Planner handoff that turns one eligible roadmap item into an imp
 ### Required inputs
 
 - Exactly one stable `<roadmap-id>`.
-- A matching roadmap item whose status is eligible for planning and whose dependencies are satisfied or explicitly handled.
+- A matching roadmap item whose status is eligible for planning, whose
+  outstanding delivery dependencies are satisfied or explicitly handled, and
+  whose capability prerequisites resolve to accepted current truth.
 
 ### Valid starting states
 
@@ -273,7 +275,8 @@ A Task Planner prompt containing the selected roadmap item, repository evidence 
 
 - Missing, extra, or syntactically invalid roadmap ID.
 - Unknown, delivered, cancelled, deferred, blocked, already active, or otherwise ineligible item.
-- Unsatisfied dependency not explicitly handled.
+- Unsatisfied delivery dependency or missing/incompatible capability
+  prerequisite not explicitly handled.
 - Existing populated active task or current reviews.
 - Malformed capability, roadmap, archive, or placeholder evidence.
 - Planner outcome is not implementation-ready.

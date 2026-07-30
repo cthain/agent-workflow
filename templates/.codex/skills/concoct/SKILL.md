@@ -390,6 +390,11 @@ Archive transactionally:
    succeed; preserve it for Git integration;
 9. confirm `ready` for non-Git tasks or `archived` for Git-backed tasks.
 
+The `delivered` roadmap status is transitional evidence for the next Product
+Owner reconciliation. After all dependent relationships are classified, the
+Product Owner removes completed items from the future roadmap; capabilities and
+archives retain accepted behavior and provenance.
+
 Do not rewrite historical artifacts.
 
 Then recommend:

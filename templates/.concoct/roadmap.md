@@ -69,9 +69,11 @@ Do not renumber or reuse identifiers.
 - `planned` — sufficiently defined and eligible for task planning;
 - `active` — represented by the current active task plan;
 - `blocked` — cannot proceed until a dependency or decision is resolved;
-- `delivered` — implemented, reviewed, archived, and reflected in `capabilities.md`;
+- `delivered` — transitional marker pending Product Owner reconciliation and
+  removal from the active roadmap;
 - `deferred` — still valid but intentionally postponed;
-- `cancelled` — no longer intended.
+- `cancelled` — no longer intended and awaiting reference/rationale
+  reconciliation before removal.
 
 ### Priorities
 
@@ -83,6 +85,15 @@ Do not renumber or reuse identifiers.
 Priority describes importance.
 
 Dependencies and readiness determine implementation order.
+
+`Depends on` contains only unresolved delivery dependencies on outstanding
+roadmap items. `Capability prerequisites` contains stable references to
+accepted current behavior in `.concoct/capabilities.md`. Satisfied sequencing
+constraints and delivery provenance belong in neither field.
+
+After relationships are reconciled, remove delivered and cancelled items from
+the active roadmap. Keep their identifiers reserved; capabilities and archives
+preserve accepted delivery provenance.
 
 ### Capability impact
 
@@ -120,6 +131,7 @@ concoct plan <roadmap-id>
 - Status: `candidate`
 - Priority: `high`
 - Depends on: `none`
+- Capability prerequisites: `none`
 - Capability impact: `add | update | remove | none`
 
 ### Outcome
@@ -198,6 +210,7 @@ when no decisions remain.
 - Status: `candidate`
 - Priority: `medium`
 - Depends on: `<PROJECT-PREFIX>-001`
+- Capability prerequisites: `CAP-NNN | none`
 - Capability impact: `add | update | remove | none`
 
 ### Outcome
@@ -228,7 +241,8 @@ Describe the desired accepted behavior.
 
 ### Dependencies
 
-Explain the dependency and why it is necessary.
+Explain each unresolved delivery dependency and why it is necessary. Explain
+separately how each capability prerequisite is used.
 
 ### Acceptance criteria
 
@@ -273,9 +287,9 @@ Record:
 
 ## Cancelled work
 
-Preserve cancelled roadmap items and their rationale.
-
-Do not delete them merely to simplify the roadmap.
+Preserve cancellation rationale while references are reconciled, then remove
+the item from the active roadmap. Keep its identifier in a compact reserved-ID
+record and never reuse it.
 
 ## Recommended next work
 
@@ -301,6 +315,7 @@ Before completing a roadmap update, confirm:
 - priorities and dependencies are explicit;
 - planned items are actually ready for task planning;
 - blocked items name their blockers;
-- deferred and cancelled items preserve rationale;
+- deferred items preserve rationale and removed cancelled identifiers remain
+  reserved;
 - product ambiguity is visible rather than pushed into implementation;
 - material changes and recommended next steps are summarized.

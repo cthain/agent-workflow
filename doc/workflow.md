@@ -81,6 +81,19 @@ It should describe:
 
 These describe the current task and durable task context.
 
+### Product direction and current truth
+
+```text
+.concoct/roadmap.md
+.concoct/capabilities.md
+```
+
+The roadmap contains outstanding future outcomes. Its `Depends on` fields
+express only unresolved ordering between outstanding deliveries; `Capability
+prerequisites` reference accepted behavior already recorded in the capability
+ledger. Completed delivery provenance belongs in capabilities and archives, so
+delivered items leave the roadmap after Product Owner reconciliation.
+
 ### Archive files
 
 ```text

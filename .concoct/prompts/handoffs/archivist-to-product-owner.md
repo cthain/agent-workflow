@@ -17,7 +17,14 @@ Confirm:
 - follow-up ideas are not represented as delivered;
 - remaining dependencies, readiness, or sequencing have not changed.
 
-Update `roadmap.md` only when delivery materially changes future direction, dependencies, readiness, or priority.
+Classify every remaining reference to the delivered item as an unresolved
+delivery dependency, capability prerequisite, satisfied sequencing constraint,
+or obsolete relationship. Reconcile those references, then remove the delivered
+item from the future roadmap. Preserve its identifier and provenance through
+capability and archive records.
+
+Update other roadmap direction, readiness, or priority only when delivery
+materially changes it.
 Do not create an active task plan.
 
 Summarize roadmap changes, capability implications, new candidates, items ready for planning, unresolved decisions, and the next command.

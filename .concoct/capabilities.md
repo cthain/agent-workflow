@@ -12,6 +12,11 @@ This file is the canonical human-readable record of what Concoct can do now. It 
 
 This initial inventory predates Concoct's normal reviewed-task archive history. Its entries cite repository evidence directly. A historical override archive preserves the stale pre-workflow task and the inventory findings, but does not constitute an approving review or roadmap delivery.
 
+`CAP-NNN` identifiers are the stable canonical references used by roadmap and
+workflow artifacts. Their semantic titles describe the enduring behavior;
+`Added by`, `Updated by`, and archive fields record delivery provenance rather
+than an ongoing dependency on a roadmap item.
+
 ## CAP-001 — Durable file-based workflow contract
 
 - Status: `active`
@@ -39,8 +44,12 @@ The workflow produces and maintains human-readable roadmap, task-plan, notes, se
 
 ### Limitations
 
-- Workflow transitions are currently carried out by humans or agents following the files; they are not enforced by a state-aware CLI.
-- The repository contains no automated validation for artifact metadata or workflow state.
+- Role outcomes are still produced by humans or agents following rendered
+  guidance; the CLI validates durable evidence and selected transition
+  boundaries but does not perform Product Owner, Planner, Developer, Reviewer,
+  or Archivist judgment.
+- Validation targets the checked-in artifact schemas and cannot establish the
+  semantic correctness of human-authored plans, reviews, or conflict choices.
 
 ### Verification evidence
 
@@ -210,8 +219,9 @@ Project maintainers can bootstrap the workflow reliably from an installed binary
 
 ### Limitations
 
-- Role-completion mutations and archival remain later roadmap work; CAP-006
-  adds state-preserving prompt rendering to the executable surface.
+- This capability's `status` command remains read-only. CAP-006 adds
+  state-preserving prompt rendering, and CAP-007 adds the explicitly bounded
+  Git planning and integration mutations.
 - Remediation disposition validation is textual because the notes schema does not define structured review-finding identifiers.
 - Metadata parsing intentionally targets the checked-in Concoct schemas rather than arbitrary Markdown documents.
 
@@ -233,15 +243,16 @@ Project maintainers can bootstrap the workflow reliably from an installed binary
 - Status: `active`
 - Audience: `developers and coding agents`
 - Added by: `.concoct/archive/2026-07-30-CON-006-deterministic-prompt-rendering/`
+- Updated by: `.concoct/archive/2026-07-30-CON-015-isolate-integrate-git-tasks/`
 - Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`
 
 ### Capability
 
 Concoct can render complete, deterministic prompts for Product Owner roadmap
-intake, task planning, development, and independent review from validated
-repository state. It selects the applicable persona and workflow mode,
-including implementation continuation, changes-requested remediation, and
-blocked-review recovery routes.
+intake, task planning, development, independent review, and accepted archival
+from validated repository state. It selects the applicable persona and
+workflow mode, including implementation continuation, changes-requested
+remediation, blocked-review recovery routes, and Git-aware archival guidance.
 
 ### User value
 
@@ -258,6 +269,8 @@ rules.
   blocked-recovery Developer guidance.
 - `concoct review` renders Reviewer guidance with prior reviews and the next
   sequential review path.
+- `concoct archive` renders Archivist guidance from approved state, preserving
+  the distinct Git-backed and non-Git completion paths.
 - Each command accepts optional create-only `--output <path>` output.
 
 ### Outputs and effects
@@ -279,8 +292,9 @@ rules.
 
 ### Verification evidence
 
-- `internal/prompt/render_test.go` and its nine golden fixtures cover all four
-  commands and the materially distinct development and review modes.
+- `internal/prompt/render_test.go` and its ten golden fixtures cover all five
+  role commands and the materially distinct development, review, and archival
+  modes.
 - `internal/cli/cli_test.go` covers stdout/file byte equality, nested project
   discovery, workflow non-mutation, argument errors, and collision refusal.
 - `.concoct/archive/2026-07-30-CON-006-deterministic-prompt-rendering/review-02.md`
