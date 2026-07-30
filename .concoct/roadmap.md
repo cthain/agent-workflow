@@ -819,6 +819,132 @@ needed to bring them into Concoct's durable model.
 
 ---
 
+## CON-027 — Track and resolve product bugs
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-009, CON-019
+- Capability prerequisites: CAP-001, CAP-005, CAP-006
+- Capability impact: adds a durable bug register and bug-origin task lifecycle without treating defects as product-roadmap work
+
+### Outcome
+
+Allow projects to record, triage, resolve, verify, and close observed
+contradictions in accepted or intended product behavior while keeping defects
+distinct from roadmap direction, capability truth, and active-task review
+findings.
+
+A defect discovered before task acceptance remains an obligation of the active
+task. A defect discovered after acceptance becomes a separately tracked bug.
+
+### Rationale
+
+Roadmap items describe intended product evolution, so using them as a defect
+register obscures both strategy and current product truth. A dedicated bug
+lifecycle preserves durable evidence of observed failures and their disposition
+while allowing remediation to use the ordinary reviewed task lifecycle with
+explicit bug provenance.
+
+### Requirements
+
+- Introduce `.concoct/bugs.md` as the authoritative human-readable register for
+  independently tracked product defects.
+- Give each bug a stable unique identifier, lifecycle status, severity,
+  expected and observed behavior, evidence, affected capabilities or intended
+  behavior, and durable resolution references.
+- Support the primary lifecycle `reported → confirmed → planned → in-progress
+  → resolved → verified → closed`, plus reasoned alternate dispositions for
+  duplicate, not-a-bug, cannot-reproduce, deferred, and superseded reports.
+- Keep pre-acceptance defects and review findings within their active task;
+  create a separate bug only after acceptance or when the defect is otherwise
+  independent of active-task obligations.
+- Allow a confirmed bug to originate or become associated with an ordinary
+  CON-019 task without manufacturing a roadmap item, and maintain deterministic
+  bidirectional references between the bug and repair task.
+- Carry repair work through the configured planning, implementation, review,
+  archive, and delivery lifecycle while retaining links among the bug, task,
+  reviews, archive, capability reconciliation, and delivery evidence.
+- Classify each report during triage as a failure to conform to an accepted
+  capability, an incorrect or incomplete capability contract, intended but not
+  yet accepted behavior, or not a product defect.
+- Require repair tasks to classify capability impact as none, clarification,
+  change, or unknown; permit unknown during triage and planning but resolve it
+  before acceptance.
+- Do not change capability truth merely because a bug is reported. Restore
+  conformance without manufacturing a new capability when the accepted
+  contract is already correct; route genuine product evolution through an
+  explicit roadmap decision and accepted capability reconciliation.
+- Provide supported operations to report, inspect, list and filter, triage,
+  reprioritize, associate repair work, record resolution and independent
+  verification, close, reopen, and find bugs by affected capability.
+- Make status and role prompts expose applicable bug state, invalid evidence,
+  and valid next actions without silently synchronizing divergent bug and task
+  states or treating implementation, review, archive, or integration as closure.
+- Preserve unresolved, deferred, duplicate, rejected, superseded, closed, and
+  reopened bug history rather than deleting or rewriting prior evidence.
+
+### State integrity
+
+- Confirmed bugs require durable supporting evidence.
+- Planned and in-progress bugs reference a valid repair task, and a bug-origin
+  repair task references a valid bug.
+- Resolved means implementation claims the defect is corrected; verified
+  requires independent evidence against the originally reported behavior.
+- Verification requires accepted repair work, and closure requires complete
+  resolution, verification, provenance, and capability-impact evidence.
+- Duplicate reports identify their canonical bug, and reopened bugs preserve
+  earlier resolution and verification history.
+- Contradictory or incomplete evidence produces an invalid state rather than an
+  inferred or arbitrarily selected result.
+- Bug state remains derivable from durable artifacts without conversation
+  history.
+
+### Initial validation
+
+- Seed the first accepted post-CON-015 output-path defect as a confirmed bug
+  record: ignored and untracked in-repository prompt output should be allowed,
+  while tracked or unignored output remains rejected and external output
+  remains supported.
+- Validate the artifact and state model during CON-027 with representative
+  evidence for bidirectional task references, capability-impact resolution,
+  invalid states, closure, and reopening; do not fabricate those later states
+  on the seeded real bug.
+- Do not claim that CON-027 itself completed a bug-origin repair lifecycle. Its
+  accepted delivery makes that lifecycle available; the seeded bug's repair
+  must then proceed as a separately evidenced bug-origin task.
+
+### Documentation
+
+- Explain the boundaries among bugs, roadmap items, capabilities, tasks, and
+  active-task review findings.
+- Document lifecycle states and dispositions, triage and capability
+  responsibilities, repair-task creation and resumption, the distinction
+  between resolution and verification, and preservation of historical evidence.
+
+### Acceptance criteria
+
+- A post-acceptance defect can be recorded and triaged without adding product
+  evolution to the roadmap or changing accepted capability truth.
+- A pre-acceptance defect remains visibly owned by its active task and cannot be
+  closed through the separate bug lifecycle to bypass task review.
+- A confirmed bug can originate or associate with an ordinary repair task, and
+  both artifacts retain deterministic provenance from report through review,
+  archive, delivery, capability reconciliation, and verified closure.
+- Bug closure requires observable verification against the reported behavior;
+  implementation completion, review approval, or integration alone is not
+  treated as verification unless the required evidence is present.
+- Capability-conformance repairs do not create spurious capabilities, while
+  changed expected behavior cannot be closed as a bug without an explicit
+  product decision and accepted capability reconciliation.
+- Listing and filtering can identify open bugs and all bugs affecting a
+  selected capability without requiring archive or conversation reconstruction.
+- Reopening and alternate dispositions preserve reasons, links, and prior
+  evidence with clear, valid next actions.
+- Malformed, contradictory, missing, or stale bug and task references fail
+  clearly without partially mutating bug, task, roadmap, or capability state.
+
+---
+
 ## Recommended implementation order
 
 Near-term delivery sequence:
@@ -834,7 +960,7 @@ three increments:
 
 ```text
 Foundation:   CON-017 → CON-018 → CON-016 → CON-021 → CON-022
-Everyday use: CON-019 → CON-020 → CON-023 → CON-025 → CON-026
+Everyday use: CON-019 → CON-027 → CON-020 → CON-023 → CON-025 → CON-026
 Scale:        CON-024
 ```
 
@@ -843,4 +969,6 @@ product decisions; CON-013 follows CON-014. CON-010 remains behind workflow
 policy so direct execution does not automate an accidentally universal
 lifecycle. CON-011 and CON-012 remain useful later work, with task-scoped
 repository archaeology assigned to CON-022 and historical reporting retained
-in CON-012.
+in CON-012. CON-027 follows typed task origins but does not wait for Git
+strategy selection because its register and provenance rules apply across
+delivery strategies.
