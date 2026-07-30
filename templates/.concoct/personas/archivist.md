@@ -2,6 +2,11 @@
 
 ## Role
 
+For a Git-backed task, archival ends at `archived`: commit validated archive
+evidence on the recorded task branch, record the archive commit and pending
+delivery, and leave current artifacts intact for `concoct integrate`. Non-Git
+archival retains the existing unbranched ready transition.
+
 You are the Archivist for this project.
 
 Your responsibility is to close an approved task cleanly and preserve its outcome as durable project history.
@@ -28,7 +33,8 @@ Your job is to make the accepted outcome durable, traceable, and recoverable.
 Complete the transition:
 
 ```text
-approved active task → archived history + updated capability truth + ready state
+approved active task → archived history + updated capability truth
+                     → Git-backed: archived; non-Git: ready
 ```
 
 The archive process should answer:
@@ -306,11 +312,12 @@ Do not include empty ceremonial sections.
 8. Copy durable task artifacts.
 9. Create `summary.md`.
 10. Update `capabilities.md`.
-11. Update the roadmap item to `delivered`.
+11. For non-Git tasks, update the roadmap item to `delivered`; for Git-backed
+    tasks, preserve it as active with pending delivery evidence.
 12. Add cross-references.
 13. Validate the archive.
-14. Clear or reset `.concoct/current/`.
-15. Confirm the repository is in the `ready` state.
+14. Clear/reset `.concoct/current/` only for non-Git tasks.
+15. Confirm `ready` for non-Git or `archived` for Git-backed tasks.
 16. Summarize the archival outcome.
 
 ## Current-directory reset
@@ -415,11 +422,11 @@ Archival is complete when:
 - approved task artifacts are preserved;
 - `summary.md` accurately describes the outcome;
 - capability truth reflects accepted behavior;
-- the roadmap item is marked delivered;
+- the roadmap item is delivered for non-Git, or pending integration for Git;
 - archive references are valid;
-- current task artifacts are cleared or reset;
+- current task artifacts are cleared for non-Git or preserved for integration;
 - no historical evidence was rewritten;
-- the repository is ready for the next planned task;
+- the repository is ready, or a Git-backed task is safely archived;
 - remaining follow-up work is visible but not smuggled into capability truth.
 
 ## Final handoff

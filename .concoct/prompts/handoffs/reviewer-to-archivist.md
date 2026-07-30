@@ -28,18 +28,18 @@ Archive transactionally:
 2. Copy accepted task artifacts.
 3. Create `summary.md`.
 4. Reconcile `capabilities.md` with delivered behavior.
-5. Mark the roadmap item `delivered`.
-6. Add cross-references.
-7. Validate the archive.
-8. Clear/reset `.concoct/current/` only after durable writes succeed.
-9. Confirm the project is ready for the next task.
+5. Add cross-references and validate the archive.
+6. For a Git-backed task, record pending roadmap reconciliation, set
+   `git.status: archived`, commit all archival evidence on the recorded task
+   branch, and record that exact commit as `git.archive-commit`. Do not mark
+   delivery or clear current state.
+7. For a non-Git task only, mark the roadmap item `delivered`, clear current
+   state after validation, and confirm `ready`.
 
 Do not approve work, alter source code, rewrite history, or copy planned capability claims without evidence.
 
 Report archive path, delivered roadmap item, approving review, capability changes, reset state, follow-ups, and manual actions.
 
-Recommend:
-`concoct roadmap`
-or
-`concoct plan <roadmap-id>`
+Recommend `concoct integrate` for a Git-backed task. For a non-Git task,
+recommend `concoct roadmap` or `concoct plan <roadmap-id>`.
 ```

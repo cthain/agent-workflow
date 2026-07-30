@@ -363,6 +363,12 @@ State:
 
 Archive only when the latest review is `approved`, unless an explicit override is authorized and preserved.
 
+For a Git-backed task, archive on the recorded task branch, record the archival
+commit and pending delivery, and stop in `archived` without clearing current
+state or marking delivery. Recommend `concoct integrate`. Integration owns the
+squash, delivered status, current cleanup, and accepted task-branch deletion.
+Non-Git tasks retain the direct ready transition.
+
 Before archiving:
 
 1. Read `AGENTS.md`.
@@ -376,11 +382,13 @@ Archive transactionally:
 2. copy accepted task artifacts;
 3. create `summary.md`;
 4. reconcile `capabilities.md` with delivered behavior;
-5. mark the roadmap item `delivered`;
+5. for non-Git tasks, mark the roadmap item `delivered`; for Git-backed tasks,
+   preserve pending delivery for integration;
 6. add cross-references;
 7. validate the archive;
-8. clear or reset `.concoct/current/` only after durable writes succeed;
-9. confirm the repository is ready for the next task.
+8. clear/reset `.concoct/current/` for non-Git tasks only after durable writes
+   succeed; preserve it for Git integration;
+9. confirm `ready` for non-Git tasks or `archived` for Git-backed tasks.
 
 Do not rewrite historical artifacts.
 
@@ -413,6 +421,7 @@ ready
   → implementation-in-progress
   → approved
   → archived
+  → integrating / integrated (Git-backed tasks)
   → ready
 ```
 

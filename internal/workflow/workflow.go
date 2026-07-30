@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cthain/concoct/internal/gitrepo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,14 +24,17 @@ const (
 	ChangesRequested State = "review-changes-requested"
 	Approved         State = "review-approved"
 	Blocked          State = "review-blocked"
+	Archived         State = "archived"
+	Integrating      State = "integrating"
+	Integrated       State = "integrated"
 	Invalid          State = "invalid"
 )
 
 type Report struct {
-	Project, RoadmapItem, TaskStatus, LatestReview, ReviewOutcome, CapabilityImpact, Next string
-	State                                                                                 State
-	Diagnostics                                                                           []string
-	OperationalError                                                                      error
+	Project, RoadmapItem, TaskStatus, LatestReview, ReviewOutcome, CapabilityImpact, GitTrunk, GitTaskBranch, GitArchiveCommit, Next string
+	State                                                                                                                            State
+	Diagnostics                                                                                                                      []string
+	OperationalError                                                                                                                 error
 }
 
 func (r Report) String() string {
@@ -47,6 +51,9 @@ func (r Report) String() string {
 	field("Latest review", r.LatestReview)
 	field("Review outcome", r.ReviewOutcome)
 	field("Capability impact", r.CapabilityImpact)
+	field("Git trunk", r.GitTrunk)
+	field("Git task branch", r.GitTaskBranch)
+	field("Git archive commit", r.GitArchiveCommit)
 	for _, d := range r.Diagnostics {
 		fmt.Fprintf(&b, "Diagnostic: %s\n", d)
 	}
@@ -64,6 +71,17 @@ type taskMeta struct {
 	Remediates string     `yaml:"remediates-review"`
 	Impact     impact     `yaml:"capability-impact"`
 	Resolution resolution `yaml:"blocked-review-resolution"`
+	Git        gitMeta    `yaml:"git"`
+}
+type gitMeta struct {
+	Enabled            bool   `yaml:"enabled"`
+	Trunk              string `yaml:"trunk"`
+	TaskBranch         string `yaml:"task-branch"`
+	Base               string `yaml:"base"`
+	ArchiveCommit      string `yaml:"archive-commit"`
+	PreIntegrationHead string `yaml:"pre-integration-head"`
+	IntegrationCommit  string `yaml:"integration-commit"`
+	Status             string `yaml:"status"`
 }
 type impact struct {
 	Type      string   `yaml:"type"`
@@ -99,6 +117,23 @@ type PromptContext struct {
 	NextReview       string
 }
 
+type GitContext struct {
+	Enabled, Archived                                 bool
+	ID, Title, Trunk, TaskBranch, Base, ArchiveCommit string
+}
+
+func InspectGitContext(root string) (GitContext, error) {
+	data, populated, err := readPopulated(filepath.Join(root, ".concoct", "current", "task-plan.md"))
+	if err != nil || !populated {
+		return GitContext{}, err
+	}
+	var task taskMeta
+	if err := parseFront(data, &task); err != nil {
+		return GitContext{}, err
+	}
+	return GitContext{task.Git.Enabled, task.Git.Status == "archived", task.ID, task.Title, task.Git.Trunk, task.Git.TaskBranch, task.Git.Base, task.Git.ArchiveCommit}, nil
+}
+
 // InspectPromptContext reuses Detect as the authority for state validation and
 // then returns the small additional context required for deterministic prompts.
 func InspectPromptContext(root string) (PromptContext, error) {
@@ -110,6 +145,48 @@ func InspectPromptContext(root string) (PromptContext, error) {
 		return PromptContext{}, fmt.Errorf("invalid workflow state: %s", strings.Join(r.Diagnostics, "; "))
 	}
 	c := PromptContext{Report: r}
+	if r.State != Ready && r.State != Integrating {
+		gc, err := InspectGitContext(root)
+		if err != nil {
+			return PromptContext{}, err
+		}
+		if gc.Enabled {
+			repo, ok, err := gitrepo.Open(root)
+			if err != nil {
+				return PromptContext{}, err
+			}
+			if !ok {
+				return PromptContext{}, fmt.Errorf("task records Git metadata but project is not a Git repository")
+			}
+			if repo.OperationInProgress() {
+				return PromptContext{}, fmt.Errorf("an unrelated Git operation is in progress")
+			}
+			branch, err := repo.Branch()
+			if err != nil {
+				return PromptContext{}, fmt.Errorf("detached HEAD is unsafe: %w", err)
+			}
+			if branch != gc.TaskBranch {
+				return PromptContext{}, fmt.Errorf("checkout drift: expected task branch %s, found %s", gc.TaskBranch, branch)
+			}
+			if _, err := repo.Ref(gc.Trunk); err != nil {
+				return PromptContext{}, fmt.Errorf("recorded Git trunk is unavailable: %w", err)
+			}
+			if _, err := repo.Ref(gc.Base); err != nil {
+				return PromptContext{}, fmt.Errorf("recorded Git base is unavailable: %w", err)
+			}
+			head, err := repo.Head()
+			if err != nil {
+				return PromptContext{}, err
+			}
+			ancestor, err := repo.IsAncestor(gc.Base, head)
+			if err != nil || !ancestor {
+				return PromptContext{}, fmt.Errorf("recorded Git base is not an ancestor of the task branch")
+			}
+			if err := repo.Clean(); err != nil {
+				return PromptContext{}, err
+			}
+		}
+	}
 	cur := filepath.Join(root, ".concoct", "current")
 	reviews, _, err := readReviews(cur)
 	if err != nil {
@@ -163,6 +240,19 @@ func ValidatePlanItem(root, id string) error {
 		}
 	}
 	return nil
+}
+
+func PlanItemTitle(root, id string) (string, error) {
+	b, err := os.ReadFile(filepath.Join(root, ".concoct", "roadmap.md"))
+	if err != nil {
+		return "", err
+	}
+	re := regexp.MustCompile(`(?m)^## ` + regexp.QuoteMeta(id) + `\s+—\s+(.+?)\s*$`)
+	m := re.FindStringSubmatch(string(b))
+	if len(m) != 2 {
+		return "", fmt.Errorf("roadmap item %s has no parseable title", id)
+	}
+	return strings.TrimSpace(m[1]), nil
 }
 
 var itemHeading = regexp.MustCompile(`(?m)^## ([A-Z][A-Z0-9-]*-[0-9]+)\s+—`)
@@ -230,6 +320,17 @@ func Detect(root string) Report {
 			r.Diagnostics = append(r.Diagnostics, ".concoct/current: reviews exist without an active task")
 			return r
 		}
+		recovery, err := filepath.Glob(filepath.Join(root, ".git", "concoct", "integrations", "*.yaml"))
+		if err != nil {
+			r.OperationalError = err
+			return r
+		}
+		if len(recovery) > 0 {
+			r.State = Integrated
+			r.Diagnostics = append(r.Diagnostics, "integration recovery remains after active-state cleanup")
+			r.Next = "concoct integrate --continue"
+			return r
+		}
 		r.State = Ready
 		r.Next = "concoct roadmap or concoct plan <roadmap-id>"
 		return r
@@ -246,6 +347,19 @@ func Detect(root string) Report {
 	r.RoadmapItem = task.RoadmapID
 	r.TaskStatus = task.Status
 	r.CapabilityImpact = task.Impact.Type
+	if task.Git.Enabled {
+		r.GitTrunk, r.GitTaskBranch, r.GitArchiveCommit = task.Git.Trunk, task.Git.TaskBranch, task.Git.ArchiveCommit
+		if task.Git.Trunk == "" || task.Git.TaskBranch == "" || task.Git.Base == "" {
+			r.Diagnostics = append(r.Diagnostics, ".concoct/current/task-plan.md: enabled git metadata requires trunk, task-branch, and base")
+			return r
+		}
+		switch task.Git.Status {
+		case "", "active", "archived", "integrating", "integrated":
+		default:
+			r.Diagnostics = append(r.Diagnostics, ".concoct/current/task-plan.md: unknown git.status "+task.Git.Status)
+			return r
+		}
+	}
 	if task.ID == "" || task.RoadmapID == "" || task.ID != task.RoadmapID {
 		r.Diagnostics = append(r.Diagnostics, ".concoct/current/task-plan.md: fields id and roadmap-id must be present and equal")
 		return r
@@ -293,6 +407,26 @@ func Detect(root string) Report {
 	r.ReviewOutcome = latest.meta.Status
 	if latest.meta.TaskID != task.ID {
 		r.Diagnostics = append(r.Diagnostics, latest.name+": task-id does not match active task")
+		return r
+	}
+	if task.Git.Enabled && task.Git.Status != "" && task.Git.Status != "active" {
+		if latest.meta.Status != "approved" || task.Status != "implementation-complete" {
+			r.Diagnostics = append(r.Diagnostics, "Git archival/integration evidence requires an approved implementation-complete task")
+			return r
+		}
+		if task.Git.ArchiveCommit == "" {
+			r.Diagnostics = append(r.Diagnostics, ".concoct/current/task-plan.md: archived Git task requires archive-commit")
+			return r
+		}
+		if _, err := os.Stat(filepath.Join(root, ".git", "concoct", "integrations", task.ID+".yaml")); err == nil || task.Git.Status == "integrating" {
+			r.State, r.Next = Integrating, "resolve and stage conflicts, then run concoct integrate --continue, or run concoct integrate --abort"
+			return r
+		}
+		if task.Git.Status == "integrated" {
+			r.State, r.Next = Integrated, "concoct integrate --continue"
+			return r
+		}
+		r.State, r.Next = Archived, "concoct integrate"
 		return r
 	}
 	if task.Status == "planned" {

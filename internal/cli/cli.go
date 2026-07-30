@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cthain/concoct/internal/gitrepo"
+	"github.com/cthain/concoct/internal/integration"
 	"github.com/cthain/concoct/internal/project"
 	"github.com/cthain/concoct/internal/prompt"
 	"github.com/cthain/concoct/internal/workflow"
@@ -19,6 +21,8 @@ const usage = `Usage:
   concoct plan <roadmap-id> [--output <path>]
   concoct code [--output <path>]
   concoct review [--output <path>]
+  concoct archive [--output <path>]
+  concoct integrate [--continue|--abort]
   concoct help
 `
 
@@ -57,8 +61,29 @@ func Run(args []string, stdout, stderr io.Writer) error {
 			return report.OperationalError
 		}
 		return nil
-	case "roadmap", "plan", "code", "review":
+	case "roadmap", "plan", "code", "review", "archive":
 		return runPrompt(args, stdout, stderr)
+	case "integrate":
+		mode := ""
+		if len(args) == 2 && (args[1] == "--continue" || args[1] == "--abort") {
+			mode = strings.TrimPrefix(args[1], "--")
+		} else if len(args) != 1 {
+			fmt.Fprint(stderr, usage)
+			return fmt.Errorf("integrate accepts only --continue or --abort")
+		}
+		base, err := callerDir()
+		if err != nil {
+			return err
+		}
+		root, err := project.Discover(base)
+		if err != nil {
+			return err
+		}
+		if err := integration.Run(root, mode, os.Stdin, stdout); err != nil {
+			return err
+		}
+		fmt.Fprint(stdout, workflow.Detect(root).String())
+		return nil
 	default:
 		fmt.Fprint(stderr, usage)
 		return fmt.Errorf("unknown command %q", args[0])
@@ -91,12 +116,63 @@ func runPrompt(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	content, err := prompt.Render(root, prompt.Request{Command: command, RoadmapID: roadmapID})
+	request := prompt.Request{Command: command, RoadmapID: roadmapID}
+	var repo *gitrepo.Repository
+	var start gitrepo.TaskStart
+	if command == "plan" {
+		if err := workflow.ValidatePlanItem(root, roadmapID); err != nil {
+			return err
+		}
+		if output != "" {
+			target := output
+			if !filepath.IsAbs(target) {
+				target = filepath.Join(base, target)
+			}
+			if _, statErr := os.Stat(target); statErr == nil {
+				return fmt.Errorf("create output %s without overwriting: file exists", target)
+			}
+		}
+		if candidate, ok, openErr := gitrepo.Open(root); openErr != nil {
+			return openErr
+		} else if ok {
+			if output != "" {
+				target := output
+				if !filepath.IsAbs(target) {
+					target = filepath.Join(base, target)
+				}
+				rel, relErr := filepath.Rel(root, target)
+				if relErr == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+					return fmt.Errorf("Git-backed plan output must be outside the project so the new task branch remains clean")
+				}
+			}
+			title, titleErr := workflow.PlanItemTitle(root, roadmapID)
+			if titleErr != nil {
+				return titleErr
+			}
+			start, err = candidate.CreateTaskBranch(roadmapID, title)
+			if err != nil {
+				return err
+			}
+			repo = candidate
+			request.GitTrunk, request.GitTaskBranch, request.GitBase = start.Trunk, start.Branch, start.Base
+		}
+	}
+	rollback := func() {
+		if repo != nil {
+			_ = repo.Checkout(start.Trunk)
+			_ = repo.DeleteBranch(start.Branch)
+		}
+	}
+	content, err := prompt.Render(root, request)
 	if err != nil {
+		rollback()
 		return err
 	}
 	if output == "" {
 		_, err = stdout.Write(content)
+		if err != nil {
+			rollback()
+		}
 		return err
 	}
 	if !filepath.IsAbs(output) {
@@ -104,6 +180,7 @@ func runPrompt(args []string, stdout, stderr io.Writer) error {
 	}
 	file, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
 	if err != nil {
+		rollback()
 		return fmt.Errorf("create output %s without overwriting: %w", output, err)
 	}
 	wrote := false
@@ -114,9 +191,11 @@ func runPrompt(args []string, stdout, stderr io.Writer) error {
 	}()
 	if _, err = file.Write(content); err != nil {
 		_ = file.Close()
+		rollback()
 		return fmt.Errorf("write output %s: %w", output, err)
 	}
 	if err = file.Close(); err != nil {
+		rollback()
 		return fmt.Errorf("close output %s: %w", output, err)
 	}
 	wrote = true

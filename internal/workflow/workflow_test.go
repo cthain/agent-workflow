@@ -36,6 +36,24 @@ func TestDetectStates(t *testing.T) {
 	}
 }
 
+func TestDetectArchivedGitTask(t *testing.T) {
+	extra := "git:\n  enabled: true\n  trunk: trunk\n  task-branch: concoct/app-001-demo\n  base: abc123\n  archive-commit: def456\n  status: archived\n"
+	root := fixture(t, "implementation-complete", "approved", extra)
+	got := Detect(root)
+	if got.State != Archived || got.Next != "concoct integrate" {
+		t.Fatalf("got %#v", got)
+	}
+}
+
+func TestDetectInterruptedDeliveryIsNotReady(t *testing.T) {
+	root := fixture(t, "", "", "")
+	write(t, filepath.Join(root, ".git/concoct/integrations/APP-001.yaml"), "phase: delivered\n")
+	got := Detect(root)
+	if got.State != Integrated || got.Next != "concoct integrate --continue" {
+		t.Fatalf("got %#v", got)
+	}
+}
+
 func TestDetectInvalidEvidence(t *testing.T) {
 	tests := []struct {
 		name   string

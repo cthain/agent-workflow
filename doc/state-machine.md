@@ -7,9 +7,23 @@ updated: 2026-07-29
 
 # Concoct workflow state machine
 
+Git-backed approved tasks extend the terminal path:
+
+```text
+review-approved → archive → archived → integrate → integrated → ready
+                                      ↘ integrating
+                                        ├─ --continue → integrated → ready
+                                        └─ --abort → archived
+```
+
+`ready` is reported only after integration, delivery bookkeeping, current
+cleanup, task-branch deletion, and recovery cleanup succeed.
+
 ## Scope and status
 
-This document is the normative design contract for Concoct workflow state and transitions. It guides later CLI implementation; it does not claim that the initial command surface is implemented. The checked-in shell initializer is legacy implementation evidence, not this contract's executable implementation.
+This document is the normative contract for the implemented Concoct workflow
+state and transitions. Artifact evidence remains authoritative; local Git
+recovery evidence is authoritative only while integration is incomplete.
 
 State is derived only from repository artifacts rooted at the project directory. Conversation history, an agent's claim, a generated prompt, and an unpersisted decision are not state evidence.
 
@@ -40,6 +54,9 @@ The states below are mutually exclusive. `invalid` is a detected condition, not 
 | `implementation-complete` | The active task status is `implementation-complete`; required task artifacts are valid; either no review exists, `remediates-review` names the latest `changes-requested` review and notes contain its completed finding dispositions, or a valid `blocked-review-resolution` names the latest `blocked` review and selects `review`. | `concoct review` |
 | `review-changes-requested` | The highest valid sequential review is complete with outcome `changes-requested` and matches the active task. | `concoct code` |
 | `review-approved` | The highest valid sequential review is complete with outcome `approved`, matches the active task, and archive prerequisites including resolved capability impact are present. | `concoct archive` |
+| `archived` | A Git-backed approved task has committed archive evidence and a recorded archival commit; delivery and current cleanup remain pending. | `concoct integrate` |
+| `integrating` | Local recovery evidence preserves the task, trunk, archival commit, and pre-integration trunk head while a squash result is incomplete. | `concoct integrate --continue` or `--abort` |
+| `integrated` | The squash commit exists and final delivery bookkeeping remains recoverable. | `concoct integrate --continue` |
 | `review-blocked` | The highest valid sequential review is complete with outcome `blocked` and matches the active task. | Route the recorded blocker to its responsible role or human. |
 | `invalid` | Required evidence is malformed, missing, contradictory, unsafe to interpret, or shows a partially completed transition. | Follow the diagnostic recovery instructions; do not mutate workflow state automatically. |
 
@@ -117,7 +134,9 @@ Directly launching or supervising an agent is outside this initial contract. A g
 | Latest blocked review, resolved with route `code` | responsible-role handoff, then `code` | Task Planner or Developer records resolution; Developer implements | `implementation-in-progress`, then `implementation-complete` |
 | Latest blocked review, resolved with route `review` | responsible-role handoff, then `review` | Task Planner or Developer records completed resolution; Reviewer reviews | One review outcome state |
 | `implementation-complete` after remediation | `review` | Reviewer using the next sequence | One review outcome state |
-| `review-approved` | `archive` | Archivist | `ready` |
+| `review-approved` | `archive` | Archivist | Git: `archived`; non-Git: `ready` |
+| `archived` | `integrate` | CLI transaction | `ready` or `integrating` |
+| `integrating` | `integrate --continue` / `--abort` | Human + CLI transaction | `ready` / `archived` |
 | Any initialized valid state | `status` | Read-only reporting; no persona | Unchanged |
 
 `roadmap` may make an item eligible for planning, but because no active task exists, the detected state remains `ready`. `plan` may be invoked directly from `ready` when the named item is already eligible; a separate `roadmap` invocation is not required.
@@ -196,15 +215,16 @@ Recovery must preserve evidence. Do not delete an active task, renumber or rewri
 2. create the dated archive directory and copy all accepted task and review artifacts;
 3. create and validate `summary.md`;
 4. reconcile `.concoct/capabilities.md` with delivered behavior;
-5. mark the matching roadmap item `delivered` and add cross-references;
-6. validate the complete archive and reconciled records;
-7. only then clear or reset `.concoct/current/` to the project convention.
+5. validate complete archive and capability evidence;
+6. Git-backed: commit archive/pending-delivery evidence and stop at `archived`;
+7. non-Git: mark delivery and clear current to reach `ready`.
 
-Any failure before step 7 preserves current artifacts. A partial durable write is reported as `invalid` and requires reconciliation; it is never treated as `ready` merely because some archive files exist.
+Any partial durable write requires reconciliation and is never treated as
+`ready` merely because archive files exist.
 
 ## Complete scenario traces
 
-### Happy path
+### Non-Git happy path
 
 ```text
 uninitialized
@@ -227,6 +247,9 @@ implementation-complete
   → review-03 approved
   → archive → ready
 ```
+
+The repeated-remediation trace above is non-Git. A Git-backed approval continues
+`archive → archived → integrate`, with conflict recovery as defined above.
 
 ### Blocked review
 

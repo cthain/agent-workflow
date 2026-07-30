@@ -13,8 +13,9 @@ import (
 )
 
 type Request struct {
-	Command   string
-	RoadmapID string
+	Command                          string
+	RoadmapID                        string
+	GitTrunk, GitTaskBranch, GitBase string
 }
 
 type roleSpec struct {
@@ -49,6 +50,9 @@ func Render(root string, request Request) ([]byte, error) {
 	if request.RoadmapID != "" {
 		fmt.Fprintf(&b, "- Roadmap item: `%s`\n", request.RoadmapID)
 	}
+	if request.GitTaskBranch != "" {
+		fmt.Fprintf(&b, "- Git trunk: `%s`\n- Git task branch: `%s`\n- Git task base: `%s`\n", request.GitTrunk, request.GitTaskBranch, request.GitBase)
+	}
 	if context.Report.LatestReview != "" {
 		fmt.Fprintf(&b, "- Latest review: `%s` (`%s`)\n", context.Report.LatestReview, context.Report.ReviewOutcome)
 	}
@@ -63,7 +67,11 @@ func Render(root string, request Request) ([]byte, error) {
 	for _, path := range spec.writes {
 		fmt.Fprintf(&b, "\n- `%s`", path)
 	}
-	fmt.Fprintf(&b, "\n\nThe `concoct %s` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.\n", request.Command)
+	if request.Command == "plan" && request.GitTaskBranch != "" {
+		fmt.Fprintln(&b, "\n\nThe command created and checked out the recorded task branch after validating the clean source trunk and base. Persist these exact values in task-plan Git metadata. It made no workflow-artifact updates.")
+	} else {
+		fmt.Fprintf(&b, "\n\nThe `concoct %s` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.\n", request.Command)
+	}
 	fmt.Fprintf(&b, "\n## Expected outcome\n\n%s\n\n## Validation and completion\n\nValidate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.\n", spec.outcome)
 	fmt.Fprintf(&b, "\n## Recommended next transition\n\n%s\n\n## Canonical handoff instructions\n\n", spec.next)
 	b.Write(bytes.TrimSpace(source))
@@ -117,6 +125,13 @@ func selectRole(root string, request Request, c workflow.PromptContext) (roleSpe
 		reads := append(base, ".concoct/personas/reviewer.md", ".concoct/current/task-plan.md", ".concoct/current/notes.md", "complete Git diff and relevant source, tests, and documentation")
 		reads = append(reads, c.ReviewFiles...)
 		return roleSpec{"reviewer", ".concoct/prompts/handoffs/developer-to-reviewer.md", mode, "Independently assess the implementation and create exactly the named next sequential review with one outcome: approved, changes-requested, or blocked. Do not implement fixes.", "approved → `concoct archive`; changes requested → `concoct code`; blocked → responsible role or human", reads, []string{c.NextReview}}, nil
+	case "archive":
+		if c.Report.State != workflow.Approved {
+			return roleSpec{}, wrongState(request.Command, c.Report.State, "review-approved")
+		}
+		reads := append(base, ".concoct/personas/archivist.md", ".concoct/roadmap.md", ".concoct/current/task-plan.md", ".concoct/current/notes.md", "complete implementation and Git evidence")
+		reads = append(reads, c.ReviewFiles...)
+		return roleSpec{"archivist", ".concoct/prompts/handoffs/reviewer-to-archivist.md", "archival", "Archive approved evidence and reconcile capability and pending roadmap evidence. For a Git-backed task, commit the archive on the task branch, record git.archive-commit and git.status archived, and do not clear current state or mark delivery.", "Git-backed task → `concoct integrate`; non-Git task → `concoct roadmap`", reads, []string{".concoct/archive/<dated-task>/", ".concoct/capabilities.md", ".concoct/roadmap.md (pending delivery evidence only)", ".concoct/current/task-plan.md", ".concoct/current/notes.md"}}, nil
 	default:
 		return roleSpec{}, fmt.Errorf("unsupported prompt command %q", request.Command)
 	}

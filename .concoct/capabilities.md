@@ -292,11 +292,91 @@ rules.
 - `CAP-002` supplies the canonical manual prompt assets appended to rendering.
 - `CAP-005` supplies CLI project discovery and validated state detection.
 
+## CAP-007 — Git-backed task isolation and integration
+
+- Status: `active`
+- Audience: `developers and coding agents`
+- Added by: `.concoct/archive/2026-07-30-CON-015-isolate-integrate-git-tasks/`
+- Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`, `doc/workflow.md`
+
+### Capability
+
+Concoct can isolate a substantial task on a deterministic Git branch derived
+from its roadmap identity, preserve the exact integration trunk and task base,
+and validate repository identity and cleanliness at role boundaries. After
+approval, it supports task-branch archival followed by local squash integration
+into the recorded trunk, final delivery bookkeeping, and accepted branch
+cleanup. Non-Git projects retain the unbranched workflow.
+
+### User value
+
+Task implementation and review remain separate from the user's trunk until
+accepted work is archived and explicitly integrated. Durable identity and
+recovery evidence make interrupted or conflicted integration inspectable and
+recoverable without requiring a hosting provider or remote.
+
+### Inputs
+
+- Git-backed planning starts from a clean, attached branch with unambiguous
+  history and no conflicting task branch or repository operation.
+- Active task metadata records the integration trunk, task branch, immutable
+  base, and later archival and integration evidence.
+- Approved archival supplies validated task artifacts, capability
+  reconciliation, and pending roadmap evidence.
+- Non-Git projects use the existing active task and review artifacts without
+  fabricated Git metadata.
+
+### Outputs and effects
+
+- Planning creates and checks out a deterministic task branch and records exact
+  trunk/base identity before implementation.
+- Development, remediation, review, and Git archival reject checkout drift,
+  contradictory metadata, dirty boundaries, and unrelated Git operations.
+- `concoct archive` renders Archivist guidance; a Git-backed archival pass
+  preserves current state, records pending delivery, and ends at `archived`.
+- `concoct integrate`, `concoct integrate --continue`, and
+  `concoct integrate --abort` perform or recover the recorded local squash
+  transaction with exact commit, operation, worktree, and path guards.
+- Successful integration records delivery on the exact trunk, clears active
+  state, removes local recovery evidence, deletes the accepted task branch,
+  and returns to `ready`.
+- A matching upstream is pushed only after confirmation by default or explicit
+  automatic-push configuration; no remote is required for local delivery.
+
+### Limitations
+
+- Semantic conflict choices remain human-attested; Concoct validates transaction
+  structure and boundaries, not the meaning of conflict resolutions.
+- Provider and pull-request integration, worktree concurrency, stacked or
+  concurrent tasks, and automatic push without opt-in are not supported.
+- The CLI renders role prompts but does not directly execute planning,
+  development, review, or archival persona work.
+
+### Verification evidence
+
+- `internal/gitrepo/git_test.go` covers repository inspection, branch naming,
+  status parsing, changed-path boundaries, and Git operations.
+- `internal/integration/integration_test.go` uses real repositories to cover
+  local success, conflict continuation, exact abort, interruption recovery,
+  unsafe work refusal, branch cleanup, delivery, and upstream policy.
+- CLI, prompt, and workflow tests cover Git planning, state precedence,
+  archival guidance, identity validation, non-Git fallback, and recovery.
+- `.concoct/archive/2026-07-30-CON-015-isolate-integrate-git-tasks/review-03.md`
+  records final approval after destructive-recovery remediation.
+
+### Related capabilities
+
+- `CAP-001` defines the workflow and state contract extended by Git lifecycle
+  states and evidence.
+- `CAP-005` supplies project discovery and validated state reporting.
+- `CAP-006` supplies deterministic role prompts, now including archival and
+  Git-aware transition guidance.
+
 ## Known capability gaps
 
-- The `roadmap`, `plan`, `code`, and `review` commands render prompts but do not
-  perform role-completion state mutations; `archive` is not implemented as a
-  CLI command.
+- Role commands render prompts and establish Git planning/integration
+  boundaries where applicable, but they do not directly execute persona work
+  or treat rendered guidance as role completion.
 - Direct agent execution, workflow diagnostics, recovery, history reporting,
   upgrades, and overlays remain roadmap intent rather than current capabilities.
 - Repository documentation and parts of the template retain stale paths and persona names from earlier layouts.

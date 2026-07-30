@@ -1,5 +1,25 @@
 # Concoct Workflow
 
+## Optional Git task lifecycle
+
+A Git-backed task records `git.enabled`, the exact `trunk`, deterministic
+`task-branch`, immutable `base`, and later `archive-commit` and `status` in
+task-plan front matter. The branch slug lowercases roadmap ID and title,
+replaces non-alphanumeric runs with hyphens, trims and truncates it to 56
+characters, then prefixes `concoct/`. Planning refuses dirty, detached,
+operation-in-progress, and branch-collision inputs.
+
+The Archivist ends at `archived`, without delivery or current-state cleanup.
+`concoct integrate` squash-integrates the recorded archive commit into the
+recorded trunk. Recovery evidence under `.git/concoct/integrations/` supports
+human-resolved `--continue` and exact `--abort`; it is removed only after final
+bookkeeping and branch cleanup. Non-Git projects retain the unbranched flow.
+
+Recovery advances through prepared, squashed, integrated, and delivered
+checkpoints, so `--continue` can resume without duplicate commits. A matching
+trunk upstream prompts before push unless `.concoct/config.yaml` contains
+`git.auto-push: true`; no or non-matching upstream remains local-only success.
+
 `Concoct` turns ideas into implementation-ready plans that any capable coding agent can execute.
 
 ## The loop

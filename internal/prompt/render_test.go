@@ -19,6 +19,7 @@ func TestRenderRolesAndModesDeterministically(t *testing.T) {
 		{"code continuation", "code", "implementation-in-progress", "", "", "Mode: `implementation-continuation`", "code-continuation.golden"},
 		{"code remediation", "code", "implementation-complete", "changes-requested", "", "Mode: `review-remediation`", "code-remediation.golden"},
 		{"review initial", "review", "implementation-complete", "", "", "Next review artifact: `.concoct/current/review-01.md`", "review-initial.golden"},
+		{"archive", "archive", "implementation-complete", "approved", "", "Persona: `archivist`", "archive.golden"},
 		{"review after remediation", "review", "implementation-complete", "changes-requested", "remediates-review: review-01.md\n", "Mode: `post-remediation-review`", "review-after-remediation.golden"},
 		{"blocked code recovery", "code", "implementation-in-progress", "blocked", resolution("code", "developer"), "Mode: `blocked-review-recovery-to-code`", "code-blocked-recovery.golden"},
 		{"blocked review recovery", "review", "implementation-complete", "blocked", resolution("review", "task-planner"), "Mode: `blocked-review-recovery-to-review`", "review-blocked-recovery.golden"},
@@ -94,8 +95,8 @@ func fixture(t *testing.T, status, reviewStatus, extra string) string {
 	write(t, filepath.Join(root, ".concoct/roadmap.md"), fmt.Sprintf("---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Roadmap\n## APP-001 — Delivered\n- Status: `delivered`\n- Depends on: `none`\n## APP-002 — Demo\n- Status: `%s`\n- Depends on: APP-001\n", roadStatus))
 	write(t, filepath.Join(root, ".concoct/capabilities.md"), "---\nversion: 1\nproject: demo\nupdated: 2026-01-01\n---\n# Capabilities\n")
 	assets := map[string]string{
-		".concoct/personas/product-owner.md": "# Product Owner", ".concoct/personas/task-planner.md": "# Task Planner", ".concoct/personas/developer.md": "# Developer", ".concoct/personas/reviewer.md": "# Reviewer",
-		".concoct/prompts/roadmap/human-roadmap-input.md": "# Product Owner handoff", ".concoct/prompts/handoffs/product-owner-to-task-planner.md": "# Planner handoff", ".concoct/prompts/handoffs/task-planner-to-developer.md": "# Developer handoff", ".concoct/prompts/handoffs/reviewer-to-developer.md": "# Remediation handoff", ".concoct/prompts/handoffs/developer-to-reviewer.md": "# Reviewer handoff",
+		".concoct/personas/product-owner.md": "# Product Owner", ".concoct/personas/task-planner.md": "# Task Planner", ".concoct/personas/developer.md": "# Developer", ".concoct/personas/reviewer.md": "# Reviewer", ".concoct/personas/archivist.md": "# Archivist",
+		".concoct/prompts/roadmap/human-roadmap-input.md": "# Product Owner handoff", ".concoct/prompts/handoffs/product-owner-to-task-planner.md": "# Planner handoff", ".concoct/prompts/handoffs/task-planner-to-developer.md": "# Developer handoff", ".concoct/prompts/handoffs/reviewer-to-developer.md": "# Remediation handoff", ".concoct/prompts/handoffs/developer-to-reviewer.md": "# Reviewer handoff", ".concoct/prompts/handoffs/reviewer-to-archivist.md": "# Archivist handoff",
 	}
 	for path, body := range assets {
 		write(t, filepath.Join(root, path), body)

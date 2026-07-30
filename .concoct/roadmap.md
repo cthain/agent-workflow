@@ -476,7 +476,7 @@ concoct review
 - Status: `planned`
 - Priority: `high`
 - Depends on: CON-005, CON-008, CON-015
-- Capability impact: adds accepted-task archival
+- Capability impact: automates accepted-task archival and product-truth reconciliation across Git-backed and non-Git lifecycles
 
 ### Outcome
 
@@ -497,10 +497,13 @@ Archive must:
 - inspect the completed task, notes, reviews, and repository changes;
 - determine or validate capability impact;
 - update `.concoct/capabilities.md`;
-- update the roadmap item to `delivered`;
 - move current task artifacts into a dated archive directory;
 - create `summary.md`;
-- leave `.concoct/current/` ready for the next task.
+- preserve pending delivery and active task evidence for Git-backed tasks until
+  `concoct integrate` completes the accepted integration;
+- update the roadmap item to `delivered` and clear `.concoct/current/` only at
+  the lifecycle's accepted delivery boundary;
+- leave non-Git projects ready for the next task after successful archival.
 
 ### Archive structure
 
@@ -531,9 +534,15 @@ Include:
 
 - Archive refuses unapproved work by default.
 - Capability truth is reconciled transactionally.
-- Current artifacts are cleared only after successful archive completion.
+- Git-backed archival ends in `archived`, preserves current task evidence, and
+  recommends `concoct integrate` without claiming delivery.
+- Non-Git archival marks delivery, clears current artifacts, and returns the
+  repository to `ready` after all durable writes succeed.
+- Successful Git integration performs final delivery bookkeeping and clears
+  current artifacts according to the accepted CON-015 lifecycle.
 - Roadmap, capabilities, and archive remain cross-referenced.
-- The repository returns to the `ready` state.
+- Interrupted archival or integration remains recoverable without premature
+  capability or roadmap claims.
 
 ---
 
@@ -772,10 +781,12 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 
 ## CON-015 — Isolate and integrate tasks with Git branches
 
-- Status: `planned`
+- Status: `delivered`
 - Priority: `high`
 - Depends on: CON-003, CON-005
 - Capability impact: adds a Git-backed task branch lifecycle to planning and archival
+- Delivered: `.concoct/archive/2026-07-30-CON-015-isolate-integrate-git-tasks/`
+- Capability: CAP-007
 
 ### Outcome
 

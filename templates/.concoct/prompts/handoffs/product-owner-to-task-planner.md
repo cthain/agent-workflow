@@ -38,6 +38,11 @@ The task plan must define:
 
 Do not implement code or invent product direction.
 
+For a safe Git repository, record the exact current branch and HEAD, derive the
+documented deterministic task branch, refuse dirty/detached/operation or branch
+collision inputs, and create/check out the branch only after active artifacts
+validate. For a non-Git project, omit Git metadata and continue unbranched.
+
 Summarize planning readiness, scope, capability impact, risks, and unresolved questions.
 
 When ready, recommend:

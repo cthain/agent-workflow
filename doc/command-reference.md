@@ -7,9 +7,21 @@ updated: 2026-07-29
 
 # Concoct command reference
 
+## Git integration commands
+
+`concoct integrate` verifies the clean recorded task branch and archival commit,
+preserves the trunk head locally, and squash-integrates into the exact recorded
+trunk. `--continue` requires resolved, staged human-selected results. `--abort`
+restores the exact preserved trunk head and checks out the task branch. A
+matching trunk upstream prompts before push; `git.auto-push: true` in
+`.concoct/config.yaml` opts in to automatic push. Missing and non-matching
+upstreams remain local success.
+
 ## Contract status
 
-This reference defines the intended initial command surface. It is an implementation contract for later roadmap work, not a claim that these subcommands currently exist. The checked-in shell initializer uses a different legacy invocation and does not implement this command set.
+This reference defines the implemented command surface and its durable workflow
+contract. Role commands render guidance; `init`, Git-backed `plan`, and
+`integrate` perform the explicitly documented mutations.
 
 Workflow state names and transition validity are defined in [state-machine.md](state-machine.md). Project-relative paths in this reference are resolved from the Concoct-enabled project root.
 
@@ -28,10 +40,11 @@ Every role prompt includes the selected persona, exact required context, allowed
 | `init` | Bootstrap a project | Project target | `uninitialized` target | Template source and target parent | None | Creates project contract and Git repository | Bootstrap guidance | `ready` | Yes | `roadmap` |
 | `status` | Report state | Project root discovery | Any initialized valid or invalid state | State-bearing artifacts | None | None | None | Unchanged | Yes | State-dependent |
 | `roadmap` | Prepare Product Owner work | Optional human input supplied outside the command contract | `ready` | Guidance, capabilities, roadmap, archive summaries | Product Owner | CLI: none; role: roadmap only | Product Owner handoff | `ready` | Yes | `plan <id>` or `roadmap` |
-| `plan` | Prepare one active task | Roadmap ID | `ready` | Guidance, capabilities, roadmap, history, repository evidence | Task Planner | CLI: none; role: task plan, notes, selected roadmap status | Planner handoff | `planned` | Yes | `code` |
+| `plan` | Prepare one active task | Roadmap ID | `ready` | Guidance, capabilities, roadmap, history, repository evidence | Task Planner | Git CLI: safe task branch; role: task plan, notes, selected roadmap status | Planner handoff | `planned` | Yes | `code` |
 | `code` | Prepare implementation or remediation | Active task | `planned`, `implementation-in-progress`, `review-changes-requested` | Guidance, capabilities, task, notes, applicable reviews, repository | Developer | CLI: none; role: scoped implementation, tests/docs, plan, notes | Developer handoff | `implementation-complete` via in-progress | Yes | `review` |
 | `review` | Prepare independent review | Reviewable active task | `implementation-complete` | Guidance, capabilities, task, notes, all reviews, diff and relevant files | Reviewer | CLI: none; role: next review only | Reviewer handoff | Outcome-bearing review state | Yes | Outcome-dependent |
-| `archive` | Prepare and complete accepted archival | Approved active task | `review-approved` | All canonical task, review, product, and implementation evidence | Archivist | Transactional archive, capabilities, roadmap, current reset | Archivist handoff | `ready` | Yes | `roadmap` or `plan <id>` |
+| `archive` | Prepare accepted archival | Approved active task | `review-approved` | All canonical task, review, product, and implementation evidence | Archivist | Archive and capabilities; Git tasks preserve pending delivery/current evidence | Archivist handoff | Git: `archived`; non-Git: `ready` | Yes | Git: `integrate`; non-Git: `roadmap` or `plan <id>` |
+| `integrate` | Integrate accepted Git task | Archived Git task | `archived`, `integrating`, `integrated` | Recorded Git and recovery evidence | None | Squash integration, recovery, delivery bookkeeping, cleanup | None | `ready`, or recoverable `integrating`/`archived` | Yes | State-dependent |
 
 The detailed contracts below expand every matrix cell.
 
@@ -237,7 +250,11 @@ Task Planner.
 
 ### Files created or updated
 
-The command itself updates none. During successful planning, the Task Planner creates or replaces only empty placeholders with:
+For a safe Git project, the command records the exact source branch and HEAD,
+creates and checks out the deterministic collision-free task branch, and emits
+those values. Rendering/output failure rolls the checkout and new branch back.
+For non-Git projects it remains non-mutating. During successful planning, the
+Task Planner creates or replaces only empty placeholders with:
 
 - `.concoct/current/task-plan.md`;
 - `.concoct/current/notes.md`.
@@ -394,7 +411,9 @@ The error preserves all reviews and recommends implementation completion, sequen
 
 ### Purpose
 
-Render the Archivist handoff and coordinate the acceptance boundary that preserves an approved task, reconciles current product truth, and returns the project to `ready`.
+Render the Archivist handoff and coordinate the acceptance boundary. Non-Git
+tasks return directly to `ready`; Git-backed tasks stop at `archived` pending
+integration.
 
 ### Required inputs
 
@@ -426,9 +445,10 @@ After the rendered handoff is carried out, archival performs one ordered transac
 2. copy the accepted task plan, notes, every review, and other approved durable task artifacts;
 3. create and validate `summary.md` with task identity, delivered outcome, decisions, files changed, checks, approving review, capability impact, skipped work, and follow-ups;
 4. reconcile `.concoct/capabilities.md` from accepted behavior;
-5. mark only the matching roadmap item `delivered` and add archive/capability cross-references;
-6. validate the complete archive and reconciled product records;
-7. clear or reset `.concoct/current/` only after all earlier writes succeed.
+5. add archive/capability cross-references and validate reconciled records;
+6. for Git-backed tasks, commit archive evidence on the task branch, record its
+   hash and pending delivery, and preserve current/active evidence;
+7. for non-Git tasks, mark delivery and clear current only after validation.
 
 Source, tests, accepted task history, completed reviews, and unrelated roadmap items are never rewritten by archival.
 
@@ -438,7 +458,8 @@ An Archivist prompt with all preconditions, exact artifact ownership, transactio
 
 ### Resulting state
 
-`ready` only after the archive, capability record, roadmap status, cross-references, and current-directory reset all validate.
+Git-backed: `archived` after the archival commit and pending-delivery evidence
+validate. Non-Git: `ready` after delivery and current reset validate.
 
 ### Failure conditions
 
@@ -452,6 +473,9 @@ An Archivist prompt with all preconditions, exact artifact ownership, transactio
 Before current reset, every failure preserves `.concoct/current/`. A failure after any durable archive write reports the repository as `invalid`, enumerates completed and pending transaction steps, and directs the Archivist to reconcile forward without deleting evidence.
 
 ### Recommended next commands
+
+- Git-backed: `concoct integrate`.
+- Non-Git: `concoct roadmap` or `concoct plan <roadmap-id>`.
 
 - `concoct roadmap` to reassess future direction.
 - `concoct plan <roadmap-id>` when another item is already eligible.

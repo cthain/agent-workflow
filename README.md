@@ -87,6 +87,8 @@ concoct roadmap
 concoct plan APP-001
 concoct code
 concoct review
+concoct archive
+concoct integrate
 ```
 
 Each command validates the repository state and writes deterministic prompt
@@ -94,6 +96,15 @@ bytes to standard output. Use `--output <path>` to create a new prompt file
 with the same bytes. Concoct refuses to overwrite an existing output file;
 generated prompts are reproducible output and should not be committed by
 default.
+
+Git-backed tasks record their exact source trunk, immutable base, and a
+deterministic `concoct/<roadmap-id>-<normalized-title>` task branch. After the
+Archivist records the archival commit, `concoct integrate` squash-integrates
+locally into that trunk. Conflicts resume with `concoct integrate --continue`
+after human resolution and staging, or restore with `concoct integrate
+--abort`. No remote is required. A matching trunk upstream prompts before push;
+set `git.auto-push: true` in `.concoct/config.yaml` for explicit automatic-push
+opt-in. Missing and non-matching upstreams remain local success.
 
 Next:
 

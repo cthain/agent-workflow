@@ -1,0 +1,43 @@
+# Concoct Archive prompt
+
+- Persona: `archivist`
+- Workflow state: `review-approved`
+- Mode: `archival`
+- Latest review: `review-01.md` (`approved`)
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/current/notes.md`
+- `.concoct/current/review-01.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/personas/archivist.md`
+- `.concoct/roadmap.md`
+- `AGENTS.md`
+- `complete implementation and Git evidence`
+
+## Authorized updates
+
+- `.concoct/archive/<dated-task>/`
+- `.concoct/capabilities.md`
+- `.concoct/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/roadmap.md (pending delivery evidence only)`
+
+The `concoct archive` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Archive approved evidence and reconcile capability and pending roadmap evidence. For a Git-backed task, commit the archive on the task branch, record git.archive-commit and git.status archived, and do not clear current state or mark delivery.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+Git-backed task → `concoct integrate`; non-Git task → `concoct roadmap`
+
+## Canonical handoff instructions
+
+# Archivist handoff

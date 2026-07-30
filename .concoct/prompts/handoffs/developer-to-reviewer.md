@@ -46,4 +46,8 @@ Next:
 - approved → `concoct archive`
 - changes requested → `concoct code`
 - blocked → identify the responsible role or human decision
+
+For a Git-backed task, commit exactly the completed review artifact on the
+recorded task branch. Retries reuse an existing valid review commit and never
+rewrite a completed review.
 ```

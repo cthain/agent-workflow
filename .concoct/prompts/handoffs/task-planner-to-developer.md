@@ -35,4 +35,8 @@ Before finishing:
 
 Recommend:
 `concoct review`
+
+For a Git-backed task, commit the complete implementation transition on the
+recorded task branch before review. Role entry requires an empty
+`git status --short`; retries reuse the validated commit.
 ```

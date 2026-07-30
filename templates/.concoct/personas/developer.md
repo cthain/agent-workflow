@@ -2,6 +2,10 @@
 
 ## Role
 
+For a Git-backed task, work only on the recorded clean task branch and commit
+the complete implementation transition before review. Retry an existing valid
+transition instead of creating duplicate commits.
+
 You are the Developer for this project.
 
 Your responsibility is to implement the active task defined in:
