@@ -239,54 +239,55 @@ Include:
 
 ---
 
-## CON-010 — Add direct agent execution adapters
+## CON-010 — Execute one recommended action through an agent adapter
 
 - Status: `candidate`
-- Priority: `medium`
-- Depends on: CON-007, CON-008, CON-009, CON-018
-- Capability prerequisites: CAP-005, CAP-006
-- Capability impact: adds optional agent invocation
+- Priority: `high`
+- Depends on: CON-008, CON-009, CON-018, CON-030, CON-031, CON-032
+- Capability prerequisites: CAP-005, CAP-006, CAP-007, CAP-008, CAP-009
+- Capability impact: allows Concoct to invoke an agent for one recommended workflow action and validate its result
 
 ### Outcome
 
-Allow Concoct to launch a configured agent with the same deterministic prompt that can already be printed.
+Execute the single actionable recommendation produced by Concoct's workflow
+decision model through a configured agent adapter, validate its structured
+outcome and resulting repository state, and then return control to the user.
 
-### Proposed usage
+The conceptual command is:
 
 ```text
-concoct code --run codex
-concoct review --run codex
-concoct plan CON-007 --run claude
+concoct exec
 ```
 
 ### Requirements
 
-- Keep prompt generation independent from execution.
-- Make agent invocation optional.
-- Keep the complete rendered prompt inspectable.
-- Support per-project configuration in `.concoct/config.toml`.
-- Avoid embedding one agent's assumptions into the artifact model.
-- Capture exit status and useful execution metadata.
-- Do not silently grant permissions or bypass agent safety controls.
+- Keep the agent-adapter interface independent from the workflow engine and provide an initial Codex adapter without embedding Codex conventions in the core protocol.
+- Resolve the current recommendation through the same decision model exposed by `concoct next`; do not introduce a second action-selection engine.
+- Refuse execution when the recommendation is informational, ambiguous, blocked, or requires a human decision.
+- Render the same version-matched effective instructions available through the manual prompt workflow.
+- Run the configured adapter in the correct repository and task context while keeping command construction inspectable and secrets out of retained diagnostics.
+- Correlate the invocation with its structured outcome and validate action-specific repository and workflow postconditions before accepting completion.
+- Support cancellation, startup failure, abnormal termination, missing outcomes, and configured timeouts without falsely advancing workflow state.
+- Leave failures in an inspectable, safely retryable state and report the resulting workflow state and next recommendation.
+- Preserve prompt inspection and export as a supported fallback and diagnostic path.
+- Do not silently grant permissions, integrate, push, or bypass agent safety controls or effective intervention policy.
+- Capture only the bounded invocation metadata required for attribution, diagnosis, and recovery.
 
-### Possible configuration
+### Product decisions before planning
 
-```toml
-default-agent = "codex"
-
-[agents.codex]
-command = ["codex", "exec"]
-
-[agents.claude]
-command = ["claude"]
-```
+- Confirm the public command name and how adapters are discovered and configured.
+- Decide whether initial execution requires confirmation and whether the first adapter uses interactive or non-interactive execution.
+- Define default timeout behavior and the location and retention policy for ephemeral invocation records.
+- Define how users inspect the exact prompt and command associated with a prior attempt.
 
 ### Acceptance criteria
 
-- The prompt-only workflow remains fully supported.
-- At least one adapter works end to end.
-- Agent command failures leave repository state recoverable.
-- Configuration errors produce clear diagnostics.
+- Concoct can execute one actionable recommendation without an intermediate prompt file.
+- The acting agent receives the same effective instructions as the corresponding manual prompt workflow.
+- Cancellation, adapter failure, malformed results, and postcondition mismatches do not advance the workflow.
+- A valid completed action advances only as permitted by existing command and state contracts.
+- The user receives a clear action summary and the newly recommended next action.
+- Manual prompt rendering remains fully supported.
 
 ---
 
@@ -384,7 +385,7 @@ concoct capability <capability-id>
 
 - Status: `candidate`
 - Priority: `medium`
-- Depends on: CON-014
+- Depends on: CON-014, CON-031
 - Capability prerequisites: CAP-003, CAP-005
 - Capability impact: adds safe lifecycle upgrades for Concoct-enabled projects
 
@@ -435,13 +436,16 @@ Concoct installs durable workflow files into client repositories. As that instal
 
 - Status: `candidate`
 - Priority: `high`
-- Depends on: CON-017
+- Depends on: CON-017, CON-030
 - Capability prerequisites: CAP-003, CAP-004, CAP-006
 - Capability impact: adds a supported customization layer for client-specific workflow guidance
 
 ### Outcome
 
-Allow a Concoct-enabled project to explicitly opt into project-specific overlays that extend or refine Concoct's reusable instructions, skills, prompts, and personas without turning those customizations into changes to the agent-neutral base templates.
+Allow a Concoct-enabled project to explicitly declare project-owned overlays
+that augment or replace supported portions of the versioned built-in workflow
+content, using deterministic composition, source attribution, and compatibility
+validation.
 
 Overlays extend the project-guidance and workflow-policy layers established by
 CON-017. They are not the boundary between Concoct protocol and project-owned
@@ -455,10 +459,17 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 
 - Keep overlays optional; projects without an overlay retain the standard Concoct behavior.
 - Require overlays to be explicitly selected or declared rather than inferred from incidental files.
+- Reference embedded resources by stable logical identifier rather than their internal source path.
+- Default to augmentation and permit replacement only for resource types explicitly declared replaceable.
+- Record the Concoct compatibility range expected by an overlay.
 - Support client-specific instructions, skills, and prompts, plus augmentation of base personas.
 - Define deterministic composition and precedence so humans and agents can inspect the effective guidance and understand its origin.
 - Preserve the agent-neutral base contract and keep overlay content distinct from Concoct-owned templates and workflow state.
+- Preserve overlay files as project-owned content across executable upgrades.
+- Report whether each effective instruction came from an embedded default, project guidance, or an overlay.
+- Never interpret legacy materialized defaults as overlays merely because the files exist.
 - Validate overlay references and incompatible customizations with clear, actionable errors.
+- Detect overlay incompatibility before rendering a partial or internally inconsistent prompt.
 - Ensure generated or rendered role guidance consistently includes applicable overlays without requiring a specific agent integration.
 - Make the overlay boundary available to lifecycle operations so upgrades can preserve client-owned customization without treating it as an ambiguous edit to the base installation.
 
@@ -1033,13 +1044,319 @@ workflow.
 
 ---
 
+## CON-029 — Introduce Concoct through a human-first README
+
+- Status: `planned`
+- Priority: `high`
+- Depends on: None
+- Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-007
+- Capability impact: improves product onboarding and documents the supported workflow without changing runtime behavior
+
+### Outcome
+
+Present Concoct through a human-first README that explains what the product is,
+why it exists, who it serves, and how a developer completes a representative
+workflow from initialization through integration before introducing repository
+structure and contributor detail.
+
+### Requirements
+
+- Explain Concoct in product terms before describing repository structure.
+- Identify the intended user as a developer using repository-aware coding agents who wants a repeatable, inspectable development workflow.
+- Explain the value of durable context, defined agent roles, explicit transitions, independent review, and retained project history.
+- Provide a concise end-to-end quick start beginning with `concoct init hello-world` and covering the supported roadmap, planning, implementation, review, archival, and integration loop.
+- Distinguish executable commands, prompt-rendered role work, and future planned automation so the quick start does not overstate current behavior.
+- Present the normal user journey before internal file layout or contributor instructions.
+- Link to detailed workflow, command-reference, state-machine, and development documentation rather than duplicating it.
+- Describe Concoct as agent-neutral without implying identical integration behavior across every coding agent.
+- State current maturity and limitations honestly.
+
+### Acceptance criteria
+
+- A new user can determine from the opening section what Concoct does, why they might use it, and whether it fits their workflow.
+- A new user can follow a representative quick start without first understanding Concoct's internal repository structure.
+- Every command shown as executable is supported by current capability truth, and role-prompt commands are not presented as autonomous role execution.
+- Detailed technical and contributor information remains discoverable without dominating the introduction.
+- README examples agree with command help, current capabilities, and the documented state machine.
+
+---
+
+## CON-030 — Make built-in workflow content executable-owned
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-017
+- Capability prerequisites: CAP-003, CAP-004, CAP-006
+- Capability impact: makes version-matched built-in prompts and personas part of the executable product distribution
+
+### Outcome
+
+Make Concoct's built-in prompts, personas, and other product-owned workflow
+guidance immutable, inspectable resources of the executable while retaining
+their readable Markdown sources. Initialized projects receive project-owned
+state and guidance rather than runtime copies of product defaults.
+
+### Rationale
+
+Built-in guidance affects executable behavior. Materializing mutable copies in
+every initialized repository creates accidental forks, makes behavior depend on
+initialization date, and complicates upgrades. The CLI already embeds the
+complete template distribution; this outcome changes the ownership and runtime
+model rather than introducing embedding as a new mechanism.
+
+### Requirements
+
+- Retain built-in workflow content as readable Markdown in the Concoct source tree.
+- Render built-in prompts and personas from version-matched executable resources rather than requiring installed repository copies.
+- Stop materializing product-owned defaults during initialization unless a file serves a deliberate repository-owned purpose.
+- Keep project state, project guidance, roadmap, capabilities, configuration, adapters, and task history repository-resident according to their defined ownership.
+- Give embedded resources stable logical identifiers that do not expose source-tree paths to configuration or overlays.
+- Preserve deterministic rendering and existing prompt golden-test guarantees.
+- Provide a supported way to inspect embedded content and its provenance.
+- Fail clearly when an expected embedded resource is missing or incompatible.
+- Provide deterministic migration guidance for legacy installed defaults without silently discarding local modifications.
+
+### Product decisions before planning
+
+- Classify each currently installed file as product-owned runtime content, project-owned content, generated state, adapter, or optional example.
+- Determine whether current persona files are pure built-ins or mix product and project guidance.
+- Decide whether inspection uses existing prompt commands, a defaults command family, or both.
+- Define how legacy installed defaults are distinguished from intentional customization.
+
+### Acceptance criteria
+
+- A newly built binary renders every standard role prompt without reading built-in prompt or persona files from the target repository.
+- A newly initialized project contains no unnecessary copies of product-owned defaults.
+- Built-in content and provenance remain directly inspectable.
+- Upgrading the executable updates built-in behavior without rewriting project-owned files.
+- Existing repositories receive deterministic migration guidance for legacy installed files.
+- Prompt output remains deterministic for the same executable version and project state.
+
+---
+
+## CON-031 — Establish release and compatibility versioning
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: None
+- Capability prerequisites: CAP-003, CAP-005
+- Capability impact: establishes version identity and compatibility contracts for the executable, embedded workflow content, project schema, and future upgrades
+
+### Outcome
+
+Adopt Semantic Versioning for Concoct releases and define how the executable,
+embedded workflow content, and initialized project contract identify their
+versions and compatibility requirements before the first public release.
+
+### Rationale
+
+The CLI behavior, built-in workflow guidance, durable artifact schemas, installed
+adapters, and migration paths have related but distinct compatibility concerns.
+One product release identity should describe what users install, while a
+separate schema discriminator lets the executable assess repository compatibility.
+
+### Requirements
+
+- Adopt one Semantic Versioning identity for product releases, beginning with prerelease `v0` versions while the contract remains fluid.
+- Embed product version and source-revision metadata in release binaries and expose it through `concoct version`.
+- Make development builds distinguishable from official releases.
+- Define the distinction among product release version, durable artifact schema version, embedded-content identity, and installed project contract version.
+- Derive embedded-content identity from the product release unless independent versioning becomes demonstrably necessary.
+- Record enough project metadata to determine compatibility without pinning a repository permanently to one executable.
+- Define behavior when older or newer executables encounter a project contract, including pre-mutation rejection of unsupported schema versions.
+- Document which changes require major, minor, patch, or prerelease increments.
+- Establish a reproducible release mechanism, tag convention, and release provenance.
+- Avoid promising stable `v1` compatibility while artifact and workflow contracts are evolving.
+
+### Product decisions before planning
+
+- Choose the project installation record and its ownership boundary.
+- Define supported compatibility ranges and which read-only operations remain available when mutation is unsafe.
+- Decide the release tooling and provenance evidence required for an official build.
+
+### Acceptance criteria
+
+- Official binaries report an exact SemVer release and source revision.
+- Development binaries cannot be mistaken for official releases.
+- A project records sufficient contract metadata for compatibility checks and future migration planning.
+- Concoct detects unsupported schema versions before mutation.
+- Release-version changes follow a documented policy.
+- CON-013 can use the established identities to plan and execute upgrades safely.
+
+---
+
+## CON-032 — Define structured orchestration actions and outcomes
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-017
+- Capability prerequisites: CAP-001, CAP-004, CAP-005, CAP-006, CAP-007, CAP-009
+- Capability impact: establishes machine-readable action, completion, and intervention contracts between Concoct and acting agents
+
+### Outcome
+
+Define agent-neutral action and result contracts that let Concoct represent an
+authorized next operation and distinguish completed work, blockers, required
+human decisions, recoverable failures, and terminal failures while retaining
+useful human-readable reporting and mechanically validating resulting state.
+
+### Rationale
+
+Process exit status and conversational claims cannot establish a workflow
+transition. Safe execution requires a structured action with explicit authority
+and postconditions plus an invocation-correlated outcome reconciled with actual
+artifact, workflow, and repository state. In ready state, Product Owner judgment
+remains responsible for selecting or refining work; deterministic evidence
+ordering does not become automatic task selection.
+
+### Requirements
+
+- Define a stable action envelope containing action identity and kind, selected role, preconditions, expected postconditions, gate classification, human-readable explanation, and adapter executability.
+- Preserve CAP-009's distinction between deterministic evidence assembly and semantic Product Owner judgment; a ready-state recommendation becomes actionable only after the authorized Product Owner result identifies a supported next operation.
+- Define a stable structured envelope for `completed`, `blocked`, `decision-required`, `failed-recoverable`, and `failed-terminal` outcomes.
+- Identify the requested role and action, task and attempt, concise result, intervention details, relevant artifacts, recovery guidance, and safe bounded adapter diagnostics.
+- Preserve a clear human-readable result alongside the machine-readable contract.
+- Correlate every outcome with its invocation and reject missing, malformed, stale, or mismatched results.
+- Define precedence among the structured result, process status, authorized artifact changes, current workflow state, and repository state.
+- Validate action-specific postconditions before accepting completion and reject claimed unauthorized transitions or integrations.
+- Separate durable task history from ephemeral execution diagnostics.
+- Keep transport and semantics independent of a particular agent runtime.
+
+### Product decisions before planning
+
+- Select the outcome transport: dedicated file, framed standard output, adapter protocol, or a defined combination.
+- Decide how the public `next` explanation and internal action representation share evidence without implying that the CLI autonomously selects work.
+- Decide whether prompts carry the result schema directly or receive it through the adapter contract.
+- Locate validation rules by workflow action, transition, or a shared action-result registry.
+- Define compatibility behavior for manual or older prompts without structured outcomes.
+- Define which diagnostic data may be retained without leaking sensitive or noisy execution logs.
+
+### Acceptance criteria
+
+- Every orchestratable action has explicit authority, preconditions, success postconditions, and intervention behavior.
+- Human-facing `next` output and adapter-facing action data derive from the same evidence and preserve the Product Owner selection boundary.
+- Concoct reliably distinguishes completion, blocker, decision, recoverable failure, and terminal failure.
+- Invalid, stale, mismatched, or mechanically contradicted outcomes cannot advance workflow state.
+- Outcome semantics do not depend on Codex-specific output conventions.
+- A user can inspect the outcome and understand why Concoct continued or stopped.
+
+---
+
+## CON-033 — Orchestrate the task lifecycle with configurable gates
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-010
+- Capability prerequisites: CAP-001, CAP-005, CAP-007, CAP-009
+- Capability impact: allows Concoct to drive repeated authorized workflow actions until completion or necessary intervention
+
+### Outcome
+
+Repeatedly determine and execute the next authorized workflow action until the
+task integrates or Concoct reaches a configured gate, genuine blocker, required
+decision, unsafe state, or unrecoverable failure.
+
+The conceptual command is:
+
+```text
+concoct run
+```
+
+### Rationale
+
+Once one action can be executed safely, a coordinator can remove mechanical
+handoffs while preserving human authority. Repetition still requires explicit
+policy enforcement, progress detection, bounded retries, attribution, and clear
+intervention behavior.
+
+### Requirements
+
+- Re-evaluate current workflow state and the next recommendation before each action, enforce effective intervention policy, execute through the configured adapter, validate postconditions, and record bounded progress.
+- Stop successfully at the supported integrated terminal state.
+- Stop before configured approval gates and on blockers, decisions, unsafe or ambiguous state, terminal failures, cancellation, or exhausted retry bounds.
+- Treat code/review iteration as a normal cycle while detecting repeated recommendations and non-progressing loops.
+- Preserve reviewer independence required by effective workflow policy.
+- Keep orchestration policy separate from workflow definitions and adapter behavior.
+- Permit invocation policy to be more restrictive than project policy, never less restrictive.
+- Keep mutation, integration, and remote push conservative; require effective authorization before protected actions and separate integration from push authority.
+- Make current and forthcoming actions visible and report exactly why the run stopped and how it can continue.
+
+### Product decisions before planning
+
+- Define the default gate policy and which gates are mandatory project policy versus invocation-selectable restrictions.
+- Decide whether approval protects an action or transition and how plan acceptance is represented.
+- Define separate authorization for integration and remote push.
+- Set action, cycle, and retry bounds.
+- Define how approval is supplied when continuing and whether an initial release requires an already selected roadmap item or active task.
+
+### Acceptance criteria
+
+- A happy-path task proceeds through its supported lifecycle without prompt-file shuttling or repeated Concoct command entry.
+- Every configured gate stops before its protected action or transition.
+- Necessary intervention stops the run even under the most permissive optional-gate policy.
+- Productive code/review cycles continue while non-progressing cycles stop deterministically.
+- Cancellation leaves valid durable workflow state.
+- The run summary identifies each action, outcome, gate, and intervention.
+- No remote push occurs without authorization from effective policy.
+
+---
+
+## CON-034 — Resume interrupted and blocked lifecycle runs safely
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-033
+- Capability prerequisites: CAP-001, CAP-005, CAP-007, CAP-009
+- Capability impact: makes lifecycle orchestration durable across interruption, failure, intervention, and environment restart
+
+### Outcome
+
+Make lifecycle runs inspectable, recoverable, and resumable without replaying
+completed actions, losing intervention context, overwriting user changes, or
+trusting stale agent results.
+
+### Rationale
+
+Long-running agent workflows will be interrupted. Correct orchestration must
+reconcile persisted attempt evidence with current workflow, repository, and Git
+state before it can decide whether an action completed, can be retried, or
+requires intervention.
+
+### Requirements
+
+- Give each run and action attempt a stable identity and persist only the state required to reconstruct policy, validated actions, the current attempt, stop reason, unresolved intervention, and last validated state.
+- Distinguish running, completed, cancelled, interrupted, blocked, awaiting-approval, and failed run states.
+- Detect abandoned attempts and reconcile recorded run evidence with current workflow and Git state before continuing.
+- Never replay proven-complete actions or accept results from stale or superseded attempts.
+- Treat uncertain completion conservatively and require explicit blocker or decision resolution when needed.
+- Detect and preserve user changes made while paused; refuse continuation when external changes invalidate the prior recommendation.
+- Support inspection, safe continuation, and abandonment without discarding the underlying task state.
+- Separate recoverable local execution records from permanent task history and deliberately promote only material decisions and outcomes.
+- Reuse existing workflow and integration recovery semantics rather than creating a competing state authority.
+
+### Product decisions before planning
+
+- Define which run data is repository-resident, local-only, portable, and retained for how long.
+- Decide how to detect an agent process that may remain alive after coordinator disconnection.
+- Define evidence sufficient to classify uncertain completion and whether a retry creates a new attempt or action instance.
+- Define how resolved decisions enter durable project history and whether abandonment releases any workflow or repository lease.
+
+### Acceptance criteria
+
+- Interruption between actions resumes at the next valid action without replay.
+- Interruption during an action does not assume success or failure before reconciliation.
+- Stale outcomes and externally invalidated recommendations cannot be applied.
+- Resolved gates, blockers, and decisions can continue the same run with retained context.
+- A user can inspect and safely abandon an incomplete run without corrupting task state.
+
+---
+
 ## Recommended implementation order
 
 Near-term delivery sequence:
 
 ```text
-CON-007  Active task planning
-CON-028  Next-action recommendation
+CON-029  Human-first product onboarding
 CON-008  Code and review transitions
 CON-009  Archive and capability reconciliation
 ```
@@ -1053,10 +1370,17 @@ Everyday use: CON-019 → CON-027 → CON-020 → CON-023 → CON-025 → CON-02
 Scale:        CON-024
 ```
 
-CON-014 now builds on CON-017 and remains a candidate pending its recorded
-product decisions; CON-013 follows CON-014. CON-010 remains behind workflow
-policy so direct execution does not automate an accidentally universal
-lifecycle. CON-011 and CON-012 remain useful later work, with task-scoped
+Productization foundation follows `CON-031 → CON-017 → CON-030 → CON-014`,
+with CON-031 independently planable when its remaining compatibility decisions
+are resolved. CON-013 follows CON-014 and CON-031; CON-030 is already a
+transitive prerequisite through CON-014 and is not duplicated on CON-013.
+Lifecycle execution follows `CON-017 → CON-032` for result semantics, then
+converges with the completed initial lifecycle, CON-018 policy, CON-030 embedded
+content, and CON-031 compatibility identity at CON-010. Repeating and durable
+orchestration then proceed as `CON-010 → CON-033 → CON-034`. This keeps a
+single-action execution boundary independently useful and prevents automated
+coordination from inventing a universal gate policy or a second next-action
+engine. CON-011 and CON-012 remain useful later work, with task-scoped
 repository archaeology assigned to CON-022 and historical reporting retained
 in CON-012. CON-027 follows typed task origins but does not wait for Git
 strategy selection because its register and provenance rules apply across
