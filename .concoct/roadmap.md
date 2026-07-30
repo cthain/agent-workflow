@@ -945,12 +945,100 @@ explicit bug provenance.
 
 ---
 
+## CON-028 — Recommend the next project action
+
+- Status: `planned`
+- Priority: `high`
+- Depends on: None
+- Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-008
+- Capability impact: adds an explicit Product Owner decision step between ready state and selection of the next workflow action
+
+### Outcome
+
+Provide `concoct next` as the single recommended command when a project is
+ready. It renders an evidence-backed Product Owner prompt that recommends the
+next valid action without selecting work, creating a task, or changing project
+lifecycle state.
+
+### Rationale
+
+Ready state currently presents an unexplained choice between roadmap intake and
+planning a known item. After initialization or accepted delivery, users need a
+clear decision step that considers strategy, eligibility, blockers, and other
+supported work origins before directing them into the appropriate existing
+workflow.
+
+### Requirements
+
+- Permit `concoct next` only from structurally valid ready state and keep the
+  command advisory and read-only.
+- Deterministically assemble authoritative roadmap, accepted capability,
+  dependency, prerequisite, relevant archive, and supported task-origin
+  evidence, then render it with the Product Owner guidance needed to make the
+  recommendation.
+- Keep semantic Product Owner judgment distinct from CLI validation: the CLI
+  must not claim to choose work merely because it assembled the prompt.
+- Require the Product Owner result to recommend exactly one of: planning an
+  eligible roadmap item; addressing another currently supported task origin;
+  refining or reconciling the roadmap; resolving a specific blocker or
+  inconsistency; or acknowledging that no actionable work is recorded.
+- Explain why the recommended action is next, cite its durable evidence and
+  blockers, and provide the exact follow-up command when one exists.
+- Do not let priority override unresolved delivery dependencies, unsupported
+  capability prerequisites, invalid evidence, or missing product decisions.
+- Support ordinary deterministic prompt output to stdout or a create-only
+  `--output <path>` destination with the existing output-safety contract.
+- Update ready-state status, successful integration output, documentation,
+  templates, help, skills, and applicable personas to recommend `concoct next`
+  consistently instead of presenting an unexplained roadmap-or-plan choice.
+- Preserve the boundaries among `status` for lifecycle state, `next` for work
+  recommendation, `roadmap` for product-direction changes, and `plan` for an
+  already selected eligible work origin.
+- Allow future task-origin types to participate when their accepted contracts
+  become available without making them delivery dependencies of this item.
+
+### Safety constraints
+
+- Invoking the command does not create or activate a task, change project
+  phase, or mutate roadmap, capability, bug, current-task, or archive artifacts.
+- Structurally missing or contradictory state remains invalid and is not
+  normalized into a recommendation prompt.
+- The prompt may recommend reconciliation but does not perform it as a side
+  effect of deciding what should happen next.
+- Implementation existence and passing checks are not treated as acceptance or
+  eligibility evidence.
+
+### Acceptance criteria
+
+- Ready-state status and successful integration recommend exactly `concoct
+  next`, giving a new or returning user one unambiguous next command.
+- `concoct next` renders a complete Product Owner prompt from authoritative
+  repository evidence without mutating workflow state or selecting work.
+- Prompt output is byte-deterministic for unchanged evidence and behaves
+  consistently on stdout and through `--output <path>`.
+- The Product Owner guidance covers an eligible roadmap item, a supported
+  non-roadmap origin, roadmap reconciliation, a specific blocker, and no
+  actionable recorded work as distinct recommendation outcomes.
+- Recommendations distinguish structural eligibility from product judgment,
+  explain their evidence, and never present blocked work as immediately
+  plannable.
+- Unsupported future origins are not implied to be available, while accepted
+  origin types can be incorporated without changing the command boundary.
+- Documentation, templates, help, personas, and skill guidance consistently
+  explain the roles of `status`, `next`, `roadmap`, and `plan`.
+- Repository-defined tests cover command-state validation, evidence assembly,
+  every recommendation outcome, non-mutation, output safety, and ready-state
+  guidance.
+
+---
+
 ## Recommended implementation order
 
 Near-term delivery sequence:
 
 ```text
 CON-007  Active task planning
+CON-028  Next-action recommendation
 CON-008  Code and review transitions
 CON-009  Archive and capability reconciliation
 ```
