@@ -1,7 +1,7 @@
 ---
 version: 1
 project: concoct
-updated: 2026-07-29
+updated: 2026-07-30
 ---
 
 # Capabilities
@@ -83,8 +83,9 @@ Each prompt instructs an agent which persona and artifacts to read, which artifa
 
 ### Limitations
 
-- Prompts must currently be selected and supplied to an agent manually.
-- No command currently renders prompts from detected repository state.
+- Manual prompt use still requires a human or agent to select and supply the
+  appropriate asset; CAP-006 provides executable selection and rendering for
+  the initial roadmap, planning, development, and review roles.
 
 ### Verification evidence
 
@@ -94,6 +95,7 @@ Each prompt instructs an agent which persona and artifacts to read, which artifa
 ### Related capabilities
 
 - `CAP-001` defines the artifact and role contract coordinated by these prompts.
+- `CAP-006` renders selected manual prompt assets with validated workflow context.
 
 ## CAP-003 — Reusable project workflow template
 
@@ -208,7 +210,8 @@ Project maintainers can bootstrap the workflow reliably from an installed binary
 
 ### Limitations
 
-- The initial executable surface implements only `init` and `status`; later workflow commands remain roadmap work.
+- Role-completion mutations and archival remain later roadmap work; CAP-006
+  adds state-preserving prompt rendering to the executable surface.
 - Remediation disposition validation is textual because the notes schema does not define structured review-finding identifiers.
 - Metadata parsing intentionally targets the checked-in Concoct schemas rather than arbitrary Markdown documents.
 
@@ -223,9 +226,77 @@ Project maintainers can bootstrap the workflow reliably from an installed binary
 - `CAP-001` defines the workflow and state contract implemented by status detection.
 - `CAP-003` supplies the embedded project template used by initialization.
 - `CAP-004` supplies the agent adapters installed with that template.
+- `CAP-006` adds deterministic role-prompt rendering to the CLI.
+
+## CAP-006 — Deterministic role-aware prompt rendering
+
+- Status: `active`
+- Audience: `developers and coding agents`
+- Added by: `.concoct/archive/2026-07-30-CON-006-deterministic-prompt-rendering/`
+- Documentation: `README.md`, `doc/command-reference.md`, `doc/state-machine.md`
+
+### Capability
+
+Concoct can render complete, deterministic prompts for Product Owner roadmap
+intake, task planning, development, and independent review from validated
+repository state. It selects the applicable persona and workflow mode,
+including implementation continuation, changes-requested remediation, and
+blocked-review recovery routes.
+
+### User value
+
+Humans and coding agents can obtain the correct inspectable role handoff
+without manually interpreting workflow state or duplicating durable role
+rules.
+
+### Inputs
+
+- `concoct roadmap` renders Product Owner roadmap guidance from the ready state.
+- `concoct plan <roadmap-id>` validates an eligible item and satisfied
+  dependencies before rendering Task Planner guidance.
+- `concoct code` renders the applicable initial, continuing, remediation, or
+  blocked-recovery Developer guidance.
+- `concoct review` renders Reviewer guidance with prior reviews and the next
+  sequential review path.
+- Each command accepts optional create-only `--output <path>` output.
+
+### Outputs and effects
+
+- Commands write deterministic prompt bytes to stdout by default or create a
+  new output file containing identical bytes.
+- Rendered prompts identify exact inputs, authorized updates, detected state
+  and mode, expected outcome, validation requirements, and next transition.
+- Rendering validates command eligibility and workflow evidence but does not
+  mutate workflow state, persist role outcomes, or launch an agent.
+
+### Limitations
+
+- Prompt commands provide guidance only; later roadmap work owns task/review
+  mutations, archival automation, and direct agent execution.
+- Output files are create-only and existing destinations are never overwritten.
+- Archive-summary relevance is selected conservatively from identifiers in
+  validated task and command context because no archive index exists.
+
+### Verification evidence
+
+- `internal/prompt/render_test.go` and its nine golden fixtures cover all four
+  commands and the materially distinct development and review modes.
+- `internal/cli/cli_test.go` covers stdout/file byte equality, nested project
+  discovery, workflow non-mutation, argument errors, and collision refusal.
+- `.concoct/archive/2026-07-30-CON-006-deterministic-prompt-rendering/review-02.md`
+  records approval after full-output golden coverage was added.
+
+### Related capabilities
+
+- `CAP-001` defines the workflow and state contract used for eligibility.
+- `CAP-002` supplies the canonical manual prompt assets appended to rendering.
+- `CAP-005` supplies CLI project discovery and validated state detection.
 
 ## Known capability gaps
 
-- The planned `roadmap`, `plan`, `code`, `review`, and `archive` command contracts and state transitions are not implemented as CLI commands.
-- Prompt rendering, direct agent execution, workflow diagnostics, recovery, history reporting, upgrades, and overlays remain roadmap intent rather than current capabilities.
+- The `roadmap`, `plan`, `code`, and `review` commands render prompts but do not
+  perform role-completion state mutations; `archive` is not implemented as a
+  CLI command.
+- Direct agent execution, workflow diagnostics, recovery, history reporting,
+  upgrades, and overlays remain roadmap intent rather than current capabilities.
 - Repository documentation and parts of the template retain stale paths and persona names from earlier layouts.

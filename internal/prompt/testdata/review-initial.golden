@@ -1,0 +1,37 @@
+# Concoct Review prompt
+
+- Persona: `reviewer`
+- Workflow state: `implementation-complete`
+- Mode: `independent-review`
+- Next review artifact: `.concoct/current/review-01.md`
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/personas/reviewer.md`
+- `AGENTS.md`
+- `complete Git diff and relevant source, tests, and documentation`
+
+## Authorized updates
+
+- `.concoct/current/review-01.md`
+
+The `concoct review` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Independently assess the implementation and create exactly the named next sequential review with one outcome: approved, changes-requested, or blocked. Do not implement fixes.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+approved → `concoct archive`; changes requested → `concoct code`; blocked → responsible role or human
+
+## Canonical handoff instructions
+
+# Reviewer handoff

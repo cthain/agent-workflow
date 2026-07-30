@@ -79,11 +79,28 @@ Inspect workflow state from the project root or any nested directory:
 concoct status
 ```
 
+Render a complete role prompt without launching an agent or changing workflow
+state:
+
+```bash
+concoct roadmap
+concoct plan APP-001
+concoct code
+concoct review
+```
+
+Each command validates the repository state and writes deterministic prompt
+bytes to standard output. Use `--output <path>` to create a new prompt file
+with the same bytes. Concoct refuses to overwrite an existing output file;
+generated prompts are reproducible output and should not be committed by
+default.
+
 Next:
 
 1. Open the generated project.
 2. Follow `.concoct/current/bootstrap-prompt.md` to start Product Owner intake.
-3. Use the handoff prompts under `.concoct/prompts/` for manual role transitions.
+3. Run the applicable prompt-rendering command, or use the equivalent manual
+   handoff under `.concoct/prompts/`.
 
 ## Workflow
 

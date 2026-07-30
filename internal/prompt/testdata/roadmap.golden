@@ -1,0 +1,34 @@
+# Concoct Roadmap prompt
+
+- Persona: `product-owner`
+- Workflow state: `ready`
+- Mode: `roadmap-intake`
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/personas/product-owner.md`
+- `.concoct/roadmap.md`
+- `AGENTS.md`
+
+## Authorized updates
+
+- `.concoct/roadmap.md`
+
+The `concoct roadmap` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Evaluate product input and update only the roadmap when sufficiently understood; do not create an active task.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+`concoct plan <roadmap-id>` when ready, otherwise `concoct roadmap`
+
+## Canonical handoff instructions
+
+# Product Owner handoff

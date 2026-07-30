@@ -1,0 +1,26 @@
+# Go build and test artifacts
+/concoct
+/concoct.exe
+/cmd/concoct/concoct
+/cmd/concoct/concoct.exe
+*.test
+*.out
+coverage.txt
+coverage.html
+cover.txt
+cover.html
+*.prof
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

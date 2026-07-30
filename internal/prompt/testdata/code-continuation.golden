@@ -1,0 +1,37 @@
+# Concoct Code prompt
+
+- Persona: `developer`
+- Workflow state: `implementation-in-progress`
+- Mode: `implementation-continuation`
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/personas/developer.md`
+- `AGENTS.md`
+
+## Authorized updates
+
+- `.concoct/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `task-scoped source, tests, and documentation`
+
+The `concoct code` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Implement or remediate the active task, record verification and decisions, set honest task status, and leave a fresh reviewer handoff. Completed reviews are append-only.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+`concoct review` after completion, or `concoct code` while work remains in progress
+
+## Canonical handoff instructions
+
+# Developer handoff

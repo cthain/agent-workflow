@@ -83,7 +83,87 @@ type reviewMeta struct {
 	Created string `yaml:"created"`
 	Persona string `yaml:"persona"`
 }
-type roadItem struct{ Status string }
+type roadItem struct {
+	Status       string
+	Dependencies []string
+}
+
+// PromptContext exposes validated, read-only workflow evidence needed by role
+// prompt rendering without making the parser's internal metadata public.
+type PromptContext struct {
+	Report           Report
+	TaskTitle        string
+	RemediatesReview string
+	ResolutionRoute  string
+	ReviewFiles      []string
+	NextReview       string
+}
+
+// InspectPromptContext reuses Detect as the authority for state validation and
+// then returns the small additional context required for deterministic prompts.
+func InspectPromptContext(root string) (PromptContext, error) {
+	r := Detect(root)
+	if r.OperationalError != nil {
+		return PromptContext{}, r.OperationalError
+	}
+	if r.State == Invalid {
+		return PromptContext{}, fmt.Errorf("invalid workflow state: %s", strings.Join(r.Diagnostics, "; "))
+	}
+	c := PromptContext{Report: r}
+	cur := filepath.Join(root, ".concoct", "current")
+	reviews, _, err := readReviews(cur)
+	if err != nil {
+		return PromptContext{}, err
+	}
+	for _, review := range reviews {
+		c.ReviewFiles = append(c.ReviewFiles, ".concoct/current/"+review.name)
+	}
+	c.NextReview = fmt.Sprintf(".concoct/current/review-%02d.md", len(reviews)+1)
+	if r.State != Ready {
+		data, _, err := readPopulated(filepath.Join(cur, "task-plan.md"))
+		if err != nil {
+			return PromptContext{}, err
+		}
+		var task taskMeta
+		if err := parseFront(data, &task); err != nil {
+			return PromptContext{}, err
+		}
+		c.TaskTitle = task.Title
+		c.RemediatesReview = task.Remediates
+		c.ResolutionRoute = task.Resolution.Route
+	}
+	return c, nil
+}
+
+// ValidatePlanItem verifies command-specific eligibility after Detect has
+// established a ready repository with no conflicting active task.
+func ValidatePlanItem(root, id string) error {
+	if !regexp.MustCompile(`^[A-Z][A-Z0-9-]*-[0-9]+$`).MatchString(id) {
+		return fmt.Errorf("invalid roadmap id %q; expected a stable identifier such as CON-006", id)
+	}
+	data, err := os.ReadFile(filepath.Join(root, ".concoct", "roadmap.md"))
+	if err != nil {
+		return err
+	}
+	items, diagnostics := parseRoadmap(string(data))
+	if len(diagnostics) > 0 {
+		return fmt.Errorf("invalid roadmap: %s", strings.Join(diagnostics, "; "))
+	}
+	item, ok := items[id]
+	if !ok {
+		return fmt.Errorf("roadmap item %s does not exist", id)
+	}
+	if item.Status != "planned" {
+		return fmt.Errorf("roadmap item %s is not eligible for planning (status %s); run concoct roadmap", id, item.Status)
+	}
+	for _, dependency := range item.Dependencies {
+		dep, ok := items[dependency]
+		if !ok || dep.Status != "delivered" {
+			return fmt.Errorf("roadmap item %s has unsatisfied dependency %s; deliver it or record an explicit roadmap resolution", id, dependency)
+		}
+	}
+	return nil
+}
 
 var itemHeading = regexp.MustCompile(`(?m)^## ([A-Z][A-Z0-9-]*-[0-9]+)\s+—`)
 var reviewName = regexp.MustCompile(`^review-([0-9]{2})\.md$`)
@@ -406,7 +486,17 @@ func parseRoadmap(s string) (map[string]roadItem, []string) {
 		if _, exists := items[id]; exists {
 			d = append(d, ".concoct/roadmap.md: duplicate item "+id)
 		}
-		items[id] = roadItem{Status: strings.TrimSpace(sm[1])}
+		item := roadItem{Status: strings.TrimSpace(sm[1])}
+		depRE := regexp.MustCompile(`(?m)^- Depends on:\s*(.+?)\s*$`)
+		if dm := depRE.FindStringSubmatch(section); len(dm) == 2 {
+			value := strings.Trim(strings.TrimSpace(dm[1]), "`")
+			if value != "" && strings.ToLower(value) != "none" {
+				for _, dependency := range strings.Split(value, ",") {
+					item.Dependencies = append(item.Dependencies, strings.TrimSpace(dependency))
+				}
+			}
+		}
+		items[id] = item
 	}
 	active := 0
 	validStatuses := map[string]bool{"candidate": true, "planned": true, "active": true, "blocked": true, "delivered": true, "deferred": true, "cancelled": true}

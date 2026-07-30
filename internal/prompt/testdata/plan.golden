@@ -1,0 +1,37 @@
+# Concoct Plan prompt
+
+- Persona: `task-planner`
+- Workflow state: `ready`
+- Mode: `task-planning`
+- Roadmap item: `APP-002`
+
+## Exact inputs to read
+
+- `.concoct/capabilities.md`
+- `.concoct/personas/task-planner.md`
+- `.concoct/roadmap.md`
+- `AGENTS.md`
+
+## Authorized updates
+
+- `.concoct/current/notes.md`
+- `.concoct/current/task-plan.md`
+- `.concoct/roadmap.md (selected item status only after both active artifacts validate)`
+
+The `concoct plan` command itself made none of these updates. Do not modify any completed review, archive artifact, or capability ledger unless explicitly listed above.
+
+## Expected outcome
+
+Create an implementation-ready task plan and durable notes for the selected eligible roadmap item, without implementing code.
+
+## Validation and completion
+
+Validate repository assumptions before writing, stay within the selected persona's ownership, run relevant documented checks, preserve durable decisions and results, and provide a complete outgoing handoff. Rendered output is guidance only and does not establish completed role work or change workflow state.
+
+## Recommended next transition
+
+`concoct code`
+
+## Canonical handoff instructions
+
+# Planner handoff

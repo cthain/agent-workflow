@@ -265,10 +265,12 @@ Next:
 
 ## CON-006 — Implement deterministic prompt rendering
 
-- Status: `planned`
+- Status: `delivered`
 - Priority: `high`
 - Depends on: CON-003, CON-005
 - Capability impact: adds role-aware prompt generation
+- Delivered: `.concoct/archive/2026-07-30-CON-006-deterministic-prompt-rendering/`
+- Capability: CAP-006
 
 ### Outcome
 
