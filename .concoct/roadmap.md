@@ -18,6 +18,12 @@ Core loop:
 human idea → concoct(**product-owner** → roadmap → **task-planner** → task-plan → **developer** → source code → **reviewer** → review → **archivist** → capabilities) → product
 ```
 
+Concoct is strict about the integrity, provenance, and interpretation of
+durable evidence. It is configurable about how work enters the system, which
+activities are required, who performs them, and how accepted work reaches the
+product. Automation should reduce context-creation and handoff effort without
+hiding the applicable prompts, personas, evidence, decisions, or transitions.
+
 This file records intended future work.
 
 It is distinct from:
@@ -236,7 +242,7 @@ Include:
 
 - Status: `candidate`
 - Priority: `medium`
-- Depends on: CON-007, CON-008, CON-009
+- Depends on: CON-007, CON-008, CON-009, CON-018
 - Capability prerequisites: CAP-005, CAP-006
 - Capability impact: adds optional agent invocation
 
@@ -428,13 +434,17 @@ Concoct installs durable workflow files into client repositories. As that instal
 
 - Status: `candidate`
 - Priority: `high`
-- Depends on: None
+- Depends on: CON-017
 - Capability prerequisites: CAP-003, CAP-004, CAP-006
 - Capability impact: adds a supported customization layer for client-specific workflow guidance
 
 ### Outcome
 
 Allow a Concoct-enabled project to explicitly opt into project-specific overlays that extend or refine Concoct's reusable instructions, skills, prompts, and personas without turning those customizations into changes to the agent-neutral base templates.
+
+Overlays extend the project-guidance and workflow-policy layers established by
+CON-017. They are not the boundary between Concoct protocol and project-owned
+truth, and they cannot weaken protocol invariants.
 
 ### Rationale
 
@@ -470,6 +480,344 @@ Concoct's shared workflow contract must remain reusable and portable, while clie
 
 ---
 
+## CON-016 — Adopt an existing repository
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-017, CON-018
+- Capability prerequisites: CAP-001, CAP-003, CAP-005
+- Capability impact: adds safe Concoct onboarding for brownfield repositories
+
+### Outcome
+
+Inspect an existing repository and produce an auditable, versionable adoption
+proposal before Concoct creates or changes files. Approved application must
+preserve repository-owned truth and validate that the inspected state has not
+materially drifted.
+
+### Requirements
+
+- Follow an explicit `inspect → report → configure → approve → apply → validate` lifecycle.
+- Discover repository boundaries, instructions, product and architecture documentation, verification commands, compatibility constraints, delivery practices, and existing planning sources.
+- Report proposed artifacts, preserved files, conflicts, uncertainty, and questions requiring human resolution.
+- Treat existing `AGENTS.md` and equivalent guidance as project-owned.
+- Never manufacture historical archives or silently promote discovered claims into accepted capabilities.
+- Keep inspection non-mutating, make repeated inspection safe, and detect drift before apply.
+
+### Acceptance criteria
+
+- A mature repository can receive a non-mutating adoption report without first becoming Concoct-shaped.
+- Every proposed create, modify, reference, and preserve action is inspectable before approval.
+- Apply requires explicit approval, refuses stale proposals safely, and leaves project-owned truth intact.
+- Validation explains the resulting effective workflow and any unresolved uncertainty.
+
+---
+
+## CON-017 — Separate protocol, policy, and project guidance
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: None
+- Capability prerequisites: CAP-001, CAP-003, CAP-004, CAP-006
+- Capability impact: separates Concoct invariants from configurable workflow policy and repository-owned conventions
+
+### Outcome
+
+Define explicit ownership and composition boundaries for Concoct protocol,
+project-selected workflow policy, and repository-owned project guidance while
+retaining `AGENTS.md` as a usable human- and agent-facing entry point.
+
+### Requirements
+
+- Make evidence integrity, immutable completed reviews, and invalid-state handling Concoct-owned protocol.
+- Make required phases, controls, and Git strategy project-selected policy.
+- Keep naming, architecture, coding standards, and verification commands project-owned.
+- Permit Concoct-owned material to be upgraded without silently replacing project guidance.
+- Detect conflicts deterministically and render the effective instruction set with source attribution.
+- Allow project guidance to strengthen policy without weakening protocol invariants.
+
+### Acceptance criteria
+
+- Every effective instruction has an identifiable ownership layer and source.
+- Project-owned guidance survives initialization, composition, and supported upgrades unchanged unless explicitly reconciled.
+- Conflicting or invariant-weakening instructions fail with actionable diagnostics.
+- Existing default workflow behavior remains expressible through the layered model.
+
+---
+
+## CON-018 — Configure workflow policy
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-017
+- Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-007
+- Capability impact: makes lifecycle requirements explicit and configurable
+
+### Outcome
+
+Allow a repository to select a small typed policy for required, conditional,
+externally satisfied, unsupported, or inapplicable workflow activities without
+turning Concoct into an arbitrary workflow-graph engine.
+
+### Requirements
+
+- Resolve each governed activity to visible evidence such as `completed`, `not-required`, `not-applicable`, `externally-satisfied`, or `blocked`.
+- Require a reason when policy permits a phase or control to be skipped.
+- Keep contradictory evidence invalid, completed reviews immutable, capability impact resolved before acceptance, and archival factual.
+- Generate handoffs and transition recommendations from effective policy and actual repository state.
+- Preserve the current happy path as the supported default profile.
+
+### Acceptance criteria
+
+- Two repositories can select different supported lifecycle policies without changing Concoct protocol.
+- Status and rendered prompts expose the resolved requirement and disposition of every governed activity.
+- Invalid or invariant-weakening policy is rejected deterministically.
+- Absence of an artifact is never silently interpreted as an authorized skip.
+
+---
+
+## CON-019 — Support multiple task origins
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-018
+- Capability prerequisites: CAP-001, CAP-005
+- Capability impact: allows repository work that does not originate in the product roadmap
+
+### Outcome
+
+Give every task explicit provenance while treating roadmap work as one origin
+alongside issues, incidents, maintenance, security, dependency changes,
+investigations, experiments, review findings, and external changes.
+
+### Requirements
+
+- Record a typed origin and an optional external reference in durable task metadata.
+- Preserve `concoct plan <roadmap-id>` as the roadmap-origin path.
+- Support creation of non-roadmap tasks without manufacturing strategy entries.
+- Classify capability impact as add, change, remove, none, or unknown during planning.
+- Require unknown capability impact to be resolved before acceptance.
+
+### Acceptance criteria
+
+- Roadmap and non-roadmap tasks enter the same evidence model with inspectable provenance.
+- Origin-specific validation fails clearly without imposing irrelevant roadmap requirements.
+- Status, prompts, archives, and reports retain the original provenance.
+- Accepted non-roadmap work reconciles capability truth when affected.
+
+---
+
+## CON-020 — Make Git lifecycle strategy-selectable
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-018
+- Capability prerequisites: CAP-007
+- Capability impact: generalizes Git integration while preserving task-branch behavior as the default managed strategy
+
+### Outcome
+
+Expose the accepted task-branch lifecycle through a stable Git strategy boundary
+and support current-branch, externally managed, and non-Git lifecycles with
+strategy-appropriate evidence and recovery.
+
+### Requirements
+
+- Define where work is isolated, which repository state is authoritative, who integrates, and what proves completion for every strategy.
+- Retain CAP-007 task-branch isolation and squash integration as the default managed strategy.
+- Let external strategies record trustworthy integration evidence without making Concoct perform the integration.
+- Define interruption, resume, drift, and reconciliation behavior for each strategy.
+- Never claim integration or completion from ambient branch state alone.
+
+### Acceptance criteria
+
+- Each supported strategy has deterministic starting, archival, integration, recovery, and completion states.
+- Existing task-branch projects retain their accepted behavior by default.
+- External integration can be proven without granting Concoct control of the provider operation.
+- Strategy changes cannot reinterpret existing task evidence silently.
+
+---
+
+## CON-021 — Represent provisional product knowledge
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-016
+- Capability prerequisites: CAP-001
+- Capability impact: distinguishes accepted product truth from repository discoveries under evaluation
+
+### Outcome
+
+Record adoption and investigation findings with status, confidence, and cited
+evidence without prematurely promoting them into canonical capabilities.
+
+### Requirements
+
+- Keep `.concoct/capabilities.md` as simple accepted current truth.
+- Store proposed, disputed, obsolete, and unknown claims in a distinct discovery artifact.
+- Distinguish verified, documented, and inferred confidence and retain evidence references.
+- Make promotion to accepted capability truth explicit and reviewable.
+
+### Acceptance criteria
+
+- Repository inspection can preserve useful uncertain findings without changing capability truth.
+- Users can trace each discovery claim to evidence and see its acceptance status.
+- Disputed or obsolete findings cannot be consumed as accepted capabilities.
+- Promotion preserves provenance and requires an explicit acceptance boundary.
+
+---
+
+## CON-022 — Plan from repository evidence
+
+- Status: `candidate`
+- Priority: `high`
+- Depends on: CON-016, CON-021
+- Capability prerequisites: CAP-001, CAP-006
+- Capability impact: makes brownfield task planning evidence-aware
+
+### Outcome
+
+Assemble a bounded, task-relevant repository evidence package before planning
+work in an existing project, showing what was examined, why it matters, and
+what remains uncertain.
+
+### Requirements
+
+- Select evidence according to the requested change and repository domain rather than dumping the repository.
+- Include relevant structure, interfaces, compatibility guarantees, tests, CI, migrations, consumers, and documentation.
+- Distinguish current inspection from adoption-baseline knowledge that may have gone stale.
+- Preserve an inventory of included, excluded, and unresolved evidence for planner and reviewer use.
+
+### Acceptance criteria
+
+- A planner can trace material assumptions to bounded repository evidence.
+- The evidence package is inspectable, deterministic for unchanged inputs, and proportionate to the task.
+- Stale baseline claims and unresolved conflicts remain visible.
+- Historical Concoct reporting remains separately scoped to CON-012.
+
+---
+
+## CON-023 — Support task profiles
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-018, CON-019
+- Capability prerequisites: CAP-001
+- Capability impact: adds reusable, inspectable policy presets for common kinds of work
+
+### Outcome
+
+Allow projects to name policy selections for feature, maintenance, incident,
+experiment, and other recurring work without creating separate hard-coded
+workflow engines.
+
+### Requirements
+
+- Resolve a profile into ordinary visible workflow policy for the selected task.
+- Keep profile source, selected values, and overrides inspectable.
+- Validate profiles against protocol invariants and the project's supported policy schema.
+- Allow explicit per-task choices without requiring a profile.
+
+### Acceptance criteria
+
+- Selecting a profile produces the same observable policy as selecting its values directly.
+- Prompts, status, and archives identify the selected profile and resolved rules.
+- Missing or incompatible profiles fail without partial task creation.
+- Profiles cannot hide skipped activities or weaken protocol invariants.
+
+---
+
+## CON-024 — Support concurrent and interrupting work
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-019, CON-020
+- Capability prerequisites: CAP-001, CAP-005, CAP-007
+- Capability impact: removes the single-active-task repository constraint
+
+### Outcome
+
+Allow multiple durable tasks to coexist and be selected unambiguously across
+branches, worktrees, contributors, interruptions, and external reviews.
+
+### Requirements
+
+- Give each task a stable identity and isolated artifact location.
+- Resolve the applicable task from explicit selection or trustworthy repository context.
+- Prevent branches, worktrees, reviews, and integration evidence from being attributed to the wrong task.
+- Support pausing blocked work while maintenance or an incident proceeds.
+- Preserve the current single-task model as a compatible default or migration source.
+
+### Acceptance criteria
+
+- Two tasks can coexist without ambiguous ownership of plans, notes, reviews, or Git evidence.
+- Task selection and valid transitions are deterministic in supported contexts.
+- Interrupting work does not rewrite or invalidate the paused task's evidence.
+- Status reports ambiguity instead of guessing when no unique task can be resolved.
+
+---
+
+## CON-025 — Explain effective workflow and state
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-018, CON-020, CON-023
+- Capability prerequisites: CAP-005, CAP-006
+- Capability impact: makes configured workflow behavior and state interpretation directly inspectable
+
+### Outcome
+
+Explain the effective workflow, task rules, state evidence, valid transitions,
+and blocked transitions together with the configuration source of each rule.
+
+### Requirements
+
+- Report active profile, resolved phase requirements, Git strategy, and task origin.
+- Cite the evidence used to determine current state.
+- Explain valid and blocked transitions and their reasons.
+- Attribute effective values to defaults, project policy, profiles, or task-specific choices.
+- Keep explanation read-only and script-friendly.
+
+### Acceptance criteria
+
+- A user can determine why Concoct selected a state or refused a transition without reading implementation code.
+- Explanations agree with status and prompt selection for the same repository state.
+- Defaulted and explicitly configured behavior are distinguishable.
+- Invalid evidence is reported rather than normalized away.
+
+---
+
+## CON-026 — Reconcile externally performed work
+
+- Status: `candidate`
+- Priority: `medium`
+- Depends on: CON-019, CON-020, CON-022
+- Capability prerequisites: CAP-001, CAP-005
+- Capability impact: establishes trustworthy Concoct state for work begun or completed outside its managed lifecycle
+
+### Outcome
+
+Inspect existing branches, commits, pull requests, emergency fixes, automation,
+or externally merged contributions and propose the evidence and remaining work
+needed to bring them into Concoct's durable model.
+
+### Requirements
+
+- Inspect and propose before mutating workflow truth.
+- Support retrospective task records, proposed capability changes, missing review work, integration evidence, and unresolved provenance questions.
+- Refuse acceptance when trustworthy state cannot be established.
+- Distinguish reconciliation from adoption of the repository itself.
+- Preserve external identifiers and evidence sources.
+
+### Acceptance criteria
+
+- Existing work can enter Concoct without being falsely represented as having followed the managed lifecycle.
+- The proposal identifies verified evidence, gaps, required decisions, and the path to acceptance.
+- No external work is marked accepted solely because a branch or commit exists.
+- Applied reconciliation remains traceable through task, review, archive, capability, and integration records as applicable.
+
+---
+
 ## Recommended implementation order
 
 Near-term delivery sequence:
@@ -480,6 +828,18 @@ CON-008  Code and review transitions
 CON-009  Archive and capability reconciliation
 ```
 
-CON-014 is independently planable but remains a candidate pending its recorded
-product decisions. CON-013 follows CON-014. Treat CON-010 through CON-012 as
-later work governed by their remaining delivery dependencies and priorities.
+After the initial CLI lifecycle is complete, prioritize the flexibility work in
+three increments:
+
+```text
+Foundation:   CON-017 → CON-018 → CON-016 → CON-021 → CON-022
+Everyday use: CON-019 → CON-020 → CON-023 → CON-025 → CON-026
+Scale:        CON-024
+```
+
+CON-014 now builds on CON-017 and remains a candidate pending its recorded
+product decisions; CON-013 follows CON-014. CON-010 remains behind workflow
+policy so direct execution does not automate an accidentally universal
+lifecycle. CON-011 and CON-012 remain useful later work, with task-scoped
+repository archaeology assigned to CON-022 and historical reporting retained
+in CON-012.
