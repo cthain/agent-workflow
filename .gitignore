@@ -11,6 +11,9 @@ cover.txt
 cover.html
 *.prof
 
+# Working dir
+.concoct/work/
+
 # Local environment files
 .env
 .env.*
