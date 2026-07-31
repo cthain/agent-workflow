@@ -1,28 +1,184 @@
 # Concoct
 
-Turn raw ideas into work agents can execute.
+Turn raw ideas into durable, reviewable work for coding agents.
 
-Concoct is a lightweight, agent-neutral workflow for turning ideas into durable task plans that coding agents can inspect, implement, review, and archive.
+Concoct is a lightweight workflow for developers who want to use coding agents
+on substantial work without leaving product intent, decisions, or review
+history trapped in a chat. It keeps that context in ordinary repository files,
+assigns clear Product Owner, Planner, Developer, Reviewer, and Archivist roles,
+and makes every transition inspectable.
 
-```text
-idea → concoct helps agents cook → eatin’ big time
-```
-
-It works with Codex, Claude Code, GitHub Copilot, Aider, and other capable coding agents. Durable project and task context lives in ordinary repository files rather than in one tool's conversation history.
-
-## How the installed workflow works
-
-Generated projects use this stable, agent-neutral contract:
+The result is a repeatable loop: decide what matters, plan it, implement it,
+review it independently, and retain the accepted outcome for the next task.
 
 ```text
-AGENTS.md                         # canonical project instructions
-.concoct/personas/                # role-specific working guidance
-.concoct/current/task-plan.md      # active task
-.concoct/current/notes.md          # durable task context
-.concoct/archive/                  # completed task history
+idea → plan → implement → review → archive → integrate
 ```
 
-Optional adapters point back to those canonical files:
+## Is Concoct a fit?
+
+Use Concoct when losing context would be costly: features, architecture
+changes, multi-file refactors, public API changes, repository setup, or work
+that may span several sessions. For a typo or a one-shot answer, it is probably
+more workflow than you need.
+
+Concoct is agent-neutral: its shared repository contract can be followed by
+Codex, Claude Code, GitHub Copilot, Aider, and other capable tools. That does not
+mean every tool has identical native integration. Concoct renders validated
+guidance; it does not launch agents, make product decisions, perform role work,
+or establish that a human-authored result is semantically correct. Humans and
+agents still supply that judgment.
+
+## Quick start
+
+The normal journey starts with the `concoct` binary available on your `PATH`:
+
+```bash
+concoct init hello-world
+cd hello-world
+```
+
+`init` creates a Git repository, installs and stages the complete workflow, and
+writes `.concoct/current/bootstrap-prompt.md`. It does not create the initial
+commit. Review the staged files, customize the project guidance, then commit
+the bootstrap before continuing.
+
+```bash
+git status
+git commit -m "Initialize Concoct project"
+concoct status
+```
+
+You can run `status` from the project root or a nested directory. It validates
+the durable evidence, reports the current workflow state, and recommends the
+next command without changing anything.
+
+### 1. Decide what comes next
+
+```bash
+concoct next
+```
+
+In a ready project, `next` renders a Product Owner prompt using the recorded
+roadmap, capabilities, dependencies, archive history, and supported human
+input. Give that prompt to a human or coding agent to recommend one next
+action. The command itself neither chooses work nor edits the roadmap.
+
+For a new idea, render the roadmap-intake prompt:
+
+```bash
+concoct roadmap
+```
+
+The Product Owner follows that guidance to clarify the idea and update
+`.concoct/roadmap.md` when it is ready. The project remains in `ready` state
+until a task is planned.
+
+### 2. Plan one eligible roadmap item
+
+```bash
+concoct plan APP-001
+```
+
+In a Git-backed project, `plan` first validates eligibility and establishes a
+deterministic task branch from the current clean branch. It then renders the
+Task Planner prompt. The Planner—not the CLI—creates the active task plan and
+notes, validates repository assumptions, and leaves the task ready for
+implementation.
+
+### 3. Implement the plan
+
+```bash
+concoct code
+```
+
+`code` renders the Developer prompt for the active task. A developer or coding
+agent follows it to make the scoped changes, run checks, record decisions and
+results, commit the complete transition on the task branch, and leave a durable
+handoff for review.
+
+### 4. Review independently
+
+```bash
+concoct review
+```
+
+`review` renders guidance for an independent Reviewer and identifies the next
+append-only review file. The Reviewer inspects the complete change and records
+exactly one outcome: `approved`, `changes-requested`, or `blocked`.
+
+When changes are requested, run `concoct code` again. The Developer addresses
+each finding without rewriting prior reviews, records every disposition, and
+hands the task back for the next `concoct review`. Repeat until approved.
+
+### 5. Archive the accepted result
+
+```bash
+concoct archive
+```
+
+`archive` renders the Archivist prompt; it does not archive the task by itself.
+The Archivist preserves the approved plan, notes, reviews, and summary, then
+reconciles accepted capability evidence. For a Git-backed task, archival is
+committed on the task branch and stops before delivery to the recorded trunk.
+
+### 6. Integrate the task
+
+```bash
+concoct integrate
+```
+
+Unlike the role-prompt commands, `integrate` performs a guarded local Git
+transaction. It squash-integrates the recorded archival commit into the exact
+trunk, completes delivery bookkeeping, clears current task state, and deletes
+the accepted task branch. No remote is required. A matching trunk upstream is
+pushed only after confirmation unless automatic push was explicitly enabled.
+
+If integration conflicts, resolve and stage the files yourself, then continue:
+
+```bash
+concoct integrate --continue
+```
+
+Concoct validates the transaction boundary, but the human remains responsible
+for the meaning of the resolution. Use `concoct integrate --abort` to restore
+the archived pre-integration state.
+
+## Understand the workflow
+
+The quick start is the representative Git-backed path. These references define
+the complete contract and recovery behavior:
+
+- [Workflow](doc/workflow.md) explains the roles, durable artifacts, and Git
+  lifecycle.
+- [Command reference](doc/command-reference.md) defines command inputs,
+  effects, failures, and allowed transitions.
+- [State machine](doc/state-machine.md) defines valid evidence, remediation,
+  blocked review, archival, and integration recovery.
+- [Multi-agent workflow](doc/multi-agent-workflow.md) explains coordination
+  across agents and tools.
+
+Role commands (`next`, `roadmap`, `plan`, `code`, `review`, and `archive`) write
+deterministic prompts to standard output. Pass `--output <path>` to create a new
+file containing the same bytes. Output is create-only: Concoct refuses to
+overwrite an existing file. Prompt rendering validates its starting state but
+does not persist the selected role's work.
+
+## What Concoct installs
+
+Generated projects use a stable, agent-neutral contract:
+
+```text
+AGENTS.md                          # canonical project instructions
+.concoct/capabilities.md          # accepted product behavior
+.concoct/roadmap.md               # intended future outcomes
+.concoct/personas/                # role-specific guidance
+.concoct/current/task-plan.md     # active implementation contract
+.concoct/current/notes.md         # durable decisions and handoffs
+.concoct/archive/                 # accepted task history
+```
+
+Thin, tool-specific adapters point back to those canonical files:
 
 ```text
 CLAUDE.md
@@ -33,11 +189,27 @@ CONVENTIONS.md
 .codex/skills/concoct/SKILL.md
 ```
 
-## Repository layout
+Concoct-owned state lives under `.concoct/`; conventional instructions and
+tool configuration remain at the generated project root.
 
-Concoct's source files use ordinary root-level directories. The `.concoct/`
-directory contains this repository's own workflow artifacts and has the same
-role in generated client projects.
+## Build from source
+
+This repository currently provides source-build and source-checkout usage; it
+does not claim a packaged release channel.
+
+```bash
+go build -o ./bin/concoct ./cmd/concoct
+./bin/concoct init ../my-new-project
+```
+
+From this checkout, `./cmd/concoct/concoct` is a thin compatibility wrapper
+around the same Go implementation:
+
+```bash
+./cmd/concoct/concoct init ../my-new-project
+```
+
+## Repository layout
 
 ```text
 .
@@ -50,83 +222,6 @@ role in generated client projects.
 └── templates/     # files installed into generated projects
 ```
 
-In a generated project, Concoct-owned task state and personas live under `.concoct/`. Conventional instruction and tool integration files remain at the project root. Removing `.concoct/` therefore removes Concoct's working material without removing the project's conventional files or tool configuration.
-
-## Bootstrap a project
-
-Build or install the Go CLI, then initialize a project from any working directory:
-
-```bash
-go build -o ./bin/concoct ./cmd/concoct
-./bin/concoct init ../my-new-project
-```
-
-From a source checkout, `./cmd/concoct/concoct init ../my-new-project` is a thin
-compatibility wrapper around the same Go implementation.
-
-`concoct init` creates the project, copies its embedded templates and personas
-(including dotfiles), initializes Git, stages the generated files, and writes:
-
-```text
-.concoct/current/bootstrap-prompt.md
-```
-
-It does not create a commit. Review the staged files before committing them.
-
-Inspect workflow state from the project root or any nested directory:
-
-```bash
-concoct status
-```
-
-Render a complete role prompt without launching an agent or changing workflow
-state:
-
-```bash
-concoct next
-concoct roadmap
-concoct plan APP-001
-concoct code
-concoct review
-concoct archive
-concoct integrate
-```
-
-In `ready` state, `status` recommends only `concoct next`. That read-only
-Product Owner prompt assembles validated roadmap, capability, dependency,
-prerequisite, archive, and supported-origin evidence so one next action can be
-recommended before `roadmap` or `plan` is chosen.
-
-Each command validates the repository state and writes deterministic prompt
-bytes to standard output. Use `--output <path>` to create a new prompt file
-with the same bytes. Concoct refuses to overwrite an existing output file;
-generated prompts are reproducible output and should not be committed by
-default.
-
-Git-backed tasks record their exact source trunk, immutable base, and a
-deterministic `concoct/<roadmap-id>-<normalized-title>` task branch. After the
-Archivist records the archival commit, `concoct integrate` squash-integrates
-locally into that trunk. Conflicts resume with `concoct integrate --continue`
-after human resolution and staging, or restore with `concoct integrate
---abort`. No remote is required. A matching trunk upstream prompts before push;
-set `git.auto-push: true` in `.concoct/config.yaml` for explicit automatic-push
-opt-in. Missing and non-matching upstreams remain local success.
-
-Next:
-
-1. Open the generated project.
-2. Follow `.concoct/current/bootstrap-prompt.md` to start Product Owner intake.
-3. Run the applicable prompt-rendering command, or use the equivalent manual
-   handoff under `.concoct/prompts/`.
-
-## Workflow
-
-Use planning files when losing context would be costly: architecture changes, multi-file refactors, features, public API changes, repository setup, or multi-session work. Skip them for tiny edits and one-shot answers.
-
-The reusable prompts are in `.concoct/prompts/`. See
-[workflow.md](doc/workflow.md) for the full loop and
-[multi-agent-workflow.md](doc/multi-agent-workflow.md) for role coordination.
-
 ## Development
 
 ```bash
@@ -136,13 +231,14 @@ go build ./cmd/concoct
 bash -n cmd/concoct/concoct
 ```
 
-## Naming conventions
-
-- Use hyphens, not underscores, in file and directory names.
-- Keep conventional, long-lived project artifacts such as `AGENTS.md`, `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` at the root.
-- Use uppercase Markdown filenames for long-lived project-level artifacts.
-- Use lowercase hyphenated Markdown filenames for task and workflow artifacts.
+Use hyphens rather than underscores in file and directory names. Keep
+conventional, long-lived files such as `AGENTS.md`, `README.md`, `CHANGELOG.md`,
+and `CONTRIBUTING.md` at the root; use lowercase hyphenated Markdown filenames
+for task and workflow artifacts.
 
 ## Manual repository rename
 
-The local content is branded for the intended repository name `concoct`. A repository owner must still rename the GitHub repository, update its description and topics, confirm clone URL redirects, and update local remotes where needed.
+The local content is branded for the intended repository name `concoct`. A
+repository owner must still rename the GitHub repository, update its
+description and topics, confirm clone URL redirects, and update local remotes
+where needed.

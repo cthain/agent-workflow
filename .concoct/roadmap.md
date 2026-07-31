@@ -1046,7 +1046,8 @@ workflow.
 
 ## CON-029 — Introduce Concoct through a human-first README
 
-- Status: `planned`
+- Status: `active`
+- Delivery: pending integration; archived evidence at `.concoct/archive/2026-07-31-CON-029-human-first-readme/`
 - Priority: `high`
 - Depends on: None
 - Capability prerequisites: CAP-001, CAP-005, CAP-006, CAP-007
