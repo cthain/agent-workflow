@@ -1046,7 +1046,7 @@ workflow.
 
 ## CON-029 — Introduce Concoct through a human-first README
 
-- Status: `active`
+- Status: `delivered`
 - Delivery: pending integration; archived evidence at `.concoct/archive/2026-07-31-CON-029-human-first-readme/`
 - Priority: `high`
 - Depends on: None
